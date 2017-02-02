@@ -20,27 +20,13 @@
 # --------------------------------------------------------------------------- #
 # CONFIGURATION 
 # --------------------------------------------------------------------------- #
+  SRC=E/000000_notabotyet.svg
   OUTDIR=_
-
-# --------------------------------------------------------------------------- #
-# VALIDATE (PROVIDED) INPUT 
-# --------------------------------------------------------------------------- #
-  if [ `echo $* | wc -c` -lt 2 ]; then echo "No arguments provided"; exit 0;
-  else if [ `ls \`ls ${1}* 2> /dev/null\` 2> /dev/null  | #
-             grep "\.svg$" | wc -l` -lt 1 ];              #
-        then echo 'No valid svg!'; exit 0;                #    
-      # else echo -e "PROCESSING NOW:\n${1}* \n--------------------";
-    fi
-  fi
-
+  
 # =========================================================================== #
 # DO IT NOW!
 # =========================================================================== #
-  for SVG in `ls \`ls ${1}*\` | grep "\.svg$"`
-   do OUTPUTBASE=`basename $SVG            | #
-                  cut -d "_" -f 2          | #
-                  sed 's/-R+//g'           | #
-                  tr -t [:lower:] [:upper:]` #
+  SVG=$SRC
 # --------------------------------------------------------------------------- #
 # MOVE ALL LAYERS ON SEPARATE LINES IN A TMP FILE
 # --------------------------------------------------------------------------- #
@@ -99,29 +85,45 @@
   for KOMBI in `cat $KOMBILIST | sed 's/ /DHSZEJDS/g'`
    do
       KOMBI=`echo $KOMBI | sed 's/DHSZEJDS/ /g'`
-        R=`basename $SVG | cut -d "_" -f 2 | #
-           grep "R+" | sed 's/\(.*\)\(R+\)\(.*\)/\2/g'`
-        M=`basename $SVG | cut -d "_" -f 2 | #
-           grep -- "-M[-]*" | sed 's/\(.*\)\(M\)\(.*\)/\2/g'`
-      if [ A$R = "AR+" ]; then R="+R-"; else R= ; fi
-      if [ A$M = "AM" ]; then M="-M-"; else M= ; fi
-      IOS=`basename $SVG | cut -d "_" -f 3-`
-      NID=`echo ${OUTPUTBASE}        | #
-           cut -d "-" -f 1           | #
-           tr -t [:lower:] [:upper:] | #
-           md5sum | cut -c 1-4       | #
-           tr -t [:lower:] [:upper:]`  #
-      FID=`basename $SVG             | #
-           tr -t [:lower:] [:upper:] | #
-           md5sum | cut -c 1-4       | #
-           tr -t [:lower:] [:upper:]`  #
-      DIF=`echo ${KOMBI}${IOS}       | #
-           md5sum | cut -c 1-9       | #
-           tr -t [:lower:] [:upper:] | #
-           rev`                        #
-      SVGOUT=$OUTDIR/$NID$FID`echo $R$M$DIF | rev            | #
-                              sed 's/-M[-]*R+/-MR+/'         | #
-                              rev | cut -c 1-9 | rev`_${IOS}   #
+
+#       R=`basename $SVG | cut -d "_" -f 2 | #
+#          grep "R+" | sed 's/\(.*\)\(R+\)\(.*\)/\2/g'`
+#       M=`basename $SVG | cut -d "_" -f 2 | #
+#          grep -- "-M[-]*" | sed 's/\(.*\)\(M\)\(.*\)/\2/g'`
+#     if [ A$R = "AR+" ]; then R="+R-"; else R= ; fi
+#     if [ A$M = "AM" ]; then M="-M-"; else M= ; fi
+#     IOS=`basename $SVG | cut -d "_" -f 3-`
+#     NID=`echo ${OUTPUTBASE}        | #
+#          cut -d "-" -f 1           | #
+#          tr -t [:lower:] [:upper:] | #
+#          md5sum | cut -c 1-4       | #
+#          tr -t [:lower:] [:upper:]`  #
+#     FID=`basename $SVG             | #
+#          tr -t [:lower:] [:upper:] | #
+#          md5sum | cut -c 1-4       | #
+#          tr -t [:lower:] [:upper:]`  #
+#     DIF=`echo ${KOMBI}${IOS}       | #
+#          md5sum | cut -c 1-9       | #
+#          tr -t [:lower:] [:upper:] | #
+#          rev`                        #
+#     SVGOUT=$OUTDIR/$NID$FID`echo $R$M$DIF | rev            | #
+#                             sed 's/-M[-]*R+/-MR+/'         | #
+#                             rev | cut -c 1-9 | rev`_${IOS}   #
+
+      NAME=`echo $KOMBI | md5sum | cut -d " " -f 1`
+      SVGOUT=$OUTDIR/BOT-${NAME}.svg
+
+    # RANDOMIZE Z (IF) / RANDOM SEED
+    # -------------------------------------------  #
+    # if zpos="r" (SEED = LAYERNAME + KOMBI)
+    # below OR above
+
+
+    # ONLY WRITE IF NOT YET DONE
+    # -------------------------------------------  #
+
+      if [ ! -f $SVGOUT ] && [ "Y$DONE" != "YYES" ];then
+
       echo "WRITING: $SVGOUT"
       head -n 1 ${SVG%%.*}.tmp                           >  $SVGOUT
       for  LAYERNAME in `echo $KOMBI`
@@ -131,45 +133,53 @@
       echo "</svg>"                                      >> $SVGOUT
       rm ${SVGOUT}.tmp
 
-    # MAKE IDs UNIQ
-    # -------------------------------------------  #
-    ( IFS=$'\n'
-      for OLDID in `sed 's/id="/\n&/g' $SVGOUT | #
-                    grep "^id=" | cut -d "\"" -f 2`
-       do
-          NEWID=`echo $SVGOUT$OLDID | md5sum | #
-                 cut -c 1-9 | tr [:lower:] [:upper:]`
-          sed -i "s,id=\"$OLDID\",id=\"$NEWID\",g" $SVGOUT
-          sed -i "s,url(#$OLDID),url(#$NEWID),g"   $SVGOUT
-      done; )
+#   # MAKE IDs UNIQ
+#   # -------------------------------------------  #
+#   ( IFS=$'\n'
+#     for OLDID in `sed 's/id="/\n&/g' $SVGOUT | #
+#                   grep "^id=" | cut -d "\"" -f 2`
+#      do
+#         NEWID=`echo $SVGOUT$OLDID | md5sum | #
+#                cut -c 1-9 | tr [:lower:] [:upper:]`
+#         sed -i "s,id=\"$OLDID\",id=\"$NEWID\",g" $SVGOUT
+#         sed -i "s,url(#$OLDID),url(#$NEWID),g"   $SVGOUT
+#     done; )
 
-    # DO SOME CLEAN UP
-    # -------------------------------------------  #
-      inkscape --vacuum-defs              $SVGOUT  # INKSCAPES VACUUM CLEANER
-      NLFOO=Nn${RANDOM}lL                          # RANDOM PLACEHOLDER
-      sed -i ":a;N;\$!ba;s/\n/$NLFOO/g"   $SVGOUT  # FOR LINEBREAKS
+#   # DO SOME CLEAN UP
+#   # -------------------------------------------  #
+#     inkscape --vacuum-defs              $SVGOUT  # INKSCAPES VACUUM CLEANER
+#     NLFOO=Nn${RANDOM}lL                          # RANDOM PLACEHOLDER
+#     sed -i ":a;N;\$!ba;s/\n/$NLFOO/g"   $SVGOUT  # FOR LINEBREAKS
 
-      cat $SVGOUT                             | # USELESS USE OF CAT
-      sed "s,<defs,\n<defs,g"                 | #
-      sed "s,</defs>,</defs>\n,g"             | #
-      sed "/<\/defs>/!s/\/>/&\n/g"            | # SEPARATE DEFS
-      sed "s,</sodipodi:[^>]*>,&\n,g"         | #
-      sed "s,<.\?sodipodi,\nXXX&,g"           | #
-      sed "/<\/sodipodi:[^>]*>/!s/\/>/&\n/g"  | # MARK TO RM SODIPODI
-      sed "/^XXX.*/d"                         | # RM MARKED LINE
-      tr -d '\n'                              | # DE-LINEBREAK (AGAIN)
-      sed "s,<metadata,\nXXX&,g"              | #
-      sed "s,</metadata>,&\n,g"               | #
-      sed "/<\/metadata>/!s/\/>/&\n/g"        | # MARK TO RM METADATA
-      sed "/^XXX.*/d"                         | # RM MARKED LINE
-      sed "s/$NLFOO/\n/g"                     | # RESTORE LINEBREAKS
-      sed "/^[ \t]*$/d"                       | # DELETE EMPTY LINES
-      tee > ${SVG%%.*}.X.tmp                    # WRITE TO FILE
+#     cat $SVGOUT                             | # USELESS USE OF CAT
+#     sed "s,<defs,\n<defs,g"                 | #
+#     sed "s,</defs>,</defs>\n,g"             | #
+#     sed "/<\/defs>/!s/\/>/&\n/g"            | # SEPARATE DEFS
+#     sed "s,</sodipodi:[^>]*>,&\n,g"         | #
+#     sed "s,<.\?sodipodi,\nXXX&,g"           | #
+#     sed "/<\/sodipodi:[^>]*>/!s/\/>/&\n/g"  | # MARK TO RM SODIPODI
+#     sed "/^XXX.*/d"                         | # RM MARKED LINE
+#     tr -d '\n'                              | # DE-LINEBREAK (AGAIN)
+#     sed "s,<metadata,\nXXX&,g"              | #
+#     sed "s,</metadata>,&\n,g"               | #
+#     sed "/<\/metadata>/!s/\/>/&\n/g"        | # MARK TO RM METADATA
+#     sed "/^XXX.*/d"                         | # RM MARKED LINE
+#     sed "s/$NLFOO/\n/g"                     | # RESTORE LINEBREAKS
+#     sed "/^[ \t]*$/d"                       | # DELETE EMPTY LINES
+#     tee > ${SVG%%.*}.X.tmp                    # WRITE TO FILE
 
-      mv ${SVG%%.*}.X.tmp $SVGOUT
+#     mv ${SVG%%.*}.X.tmp $SVGOUT
 
-      SRCSTAMP="<!-- Based on "`basename $SVG`" ("`date +%d.%m.%Y" "%T`")-->"
-      sed -i "1s,^.*$,&\n$SRCSTAMP,"     $SVGOUT
+#     SRCSTAMP="<!-- Based on "`basename $SVG`" ("`date +%d.%m.%Y" "%T`")-->"
+#     sed -i "1s,^.*$,&\n$SRCSTAMP,"     $SVGOUT
+
+      DONE="YES"
+
+      else
+
+      echo "$SVGOUT exists"
+
+      fi
 
   done
 
@@ -177,12 +187,7 @@
 # REMOVE TEMP FILES
 # --------------------------------------------------------------------------- #
   rm ${SVG%%.*}.tmp $KOMBILIST
-
 # =========================================================================== #
-  done
-# =========================================================================== #
-
 
 exit 0;
-
 
