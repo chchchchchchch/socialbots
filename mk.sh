@@ -58,12 +58,20 @@
                    cut -d "-" -f 1                   | #
                    sort -u`
    do
+#      ALLOFTYPE=`sed ':a;N;$!ba;s/\n/ /g' ${SVG%%.*}.tmp  | #
+#                 sed 's/scape:label/\nlabel/g'            | #
+#                 grep ^label                              | #
+#                 cut -d "\"" -f 2                         | #
+#                 grep $BASETYPE                           | #
+#                 sort -u`                                   #
        ALLOFTYPE=`sed ':a;N;$!ba;s/\n/ /g' ${SVG%%.*}.tmp  | #
                   sed 's/scape:label/\nlabel/g'            | #
                   grep ^label                              | #
                   cut -d "\"" -f 2                         | #
                   grep $BASETYPE                           | #
-                  sort -u`                                   #
+                  sort -u                                  | #
+                  shuf -n 4`
+
        LOOPSTART=${LOOPSTART}"for V$CNT in $ALLOFTYPE; do "
        VARIABLES=${VARIABLES}'$'V${CNT}" "
        LOOPCLOSE=${LOOPCLOSE}"done; "
@@ -85,39 +93,15 @@
   for KOMBI in `cat $KOMBILIST | sed 's/ /DHSZEJDS/g'`
    do
       KOMBI=`echo $KOMBI | sed 's/DHSZEJDS/ /g'`
-
-#       R=`basename $SVG | cut -d "_" -f 2 | #
-#          grep "R+" | sed 's/\(.*\)\(R+\)\(.*\)/\2/g'`
-#       M=`basename $SVG | cut -d "_" -f 2 | #
-#          grep -- "-M[-]*" | sed 's/\(.*\)\(M\)\(.*\)/\2/g'`
-#     if [ A$R = "AR+" ]; then R="+R-"; else R= ; fi
-#     if [ A$M = "AM" ]; then M="-M-"; else M= ; fi
-#     IOS=`basename $SVG | cut -d "_" -f 3-`
-#     NID=`echo ${OUTPUTBASE}        | #
-#          cut -d "-" -f 1           | #
-#          tr -t [:lower:] [:upper:] | #
-#          md5sum | cut -c 1-4       | #
-#          tr -t [:lower:] [:upper:]`  #
-#     FID=`basename $SVG             | #
-#          tr -t [:lower:] [:upper:] | #
-#          md5sum | cut -c 1-4       | #
-#          tr -t [:lower:] [:upper:]`  #
-#     DIF=`echo ${KOMBI}${IOS}       | #
-#          md5sum | cut -c 1-9       | #
-#          tr -t [:lower:] [:upper:] | #
-#          rev`                        #
-#     SVGOUT=$OUTDIR/$NID$FID`echo $R$M$DIF | rev            | #
-#                             sed 's/-M[-]*R+/-MR+/'         | #
-#                             rev | cut -c 1-9 | rev`_${IOS}   #
-
-      NAME=`echo $KOMBI | md5sum | cut -d " " -f 1`
-      SVGOUT=$OUTDIR/BOT-${NAME}.svg
+      NAME=`echo $KOMBI | md5sum | #
+            cut -d " " -f 1 | cut -c 1-12 | #
+            tr [:lower:] [:upper:]`
+      SVGOUT=$OUTDIR/B${NAME}.svg
 
     # RANDOMIZE Z (IF) / RANDOM SEED
     # -------------------------------------------  #
     # if zpos="r" (SEED = LAYERNAME + KOMBI)
     # below OR above
-
 
     # ONLY WRITE IF NOT YET DONE
     # -------------------------------------------  #
@@ -176,11 +160,8 @@
       DONE="YES"
 
       else
-
-      echo "$SVGOUT exists"
-
+           echo "$SVGOUT exists"
       fi
-
   done
 
 # --------------------------------------------------------------------------- #
