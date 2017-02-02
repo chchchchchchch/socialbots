@@ -2,7 +2,7 @@
 
 # PERMUTE SVG LAYERS                                                          #
 # --------------------------------------------------------------------------- #
-# copyright (c) 2016 Christoph Haag                                           #
+# copyright (c) 2017 Christoph Haag                                           #
 # --------------------------------------------------------------------------- #
 
 # This is free software: you can redistribute it and/or modify it
@@ -70,7 +70,7 @@
                   cut -d "\"" -f 2                         | #
                   grep $BASETYPE                           | #
                   sort -u                                  | #
-                  shuf -n 4`
+                  shuf -n 2`
 
        LOOPSTART=${LOOPSTART}"for V$CNT in $ALLOFTYPE; do "
        VARIABLES=${VARIABLES}'$'V${CNT}" "
@@ -160,7 +160,7 @@
       DONE="YES"
 
       else
-           echo "$SVGOUT exists"
+           sleep 0; # echo "$SVGOUT exists"
       fi
   done
 
