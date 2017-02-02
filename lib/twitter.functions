@@ -1,0 +1,74 @@
+
+ # echo "INITIALISE TWURL"
+
+   TWURL=/usr/local/bin/twurl
+
+   BASEDIR=`readlink -f $0   | #
+            rev              | #
+            cut -d "/" -f 2- | #
+            rev`
+   ACCOUNT=`find $BASEDIR -name "twitter.account" | #
+            head -n 1`
+   USER=`cat $ACCOUNT  | #
+         grep username | #
+         cut -d ":" -f 2`
+
+   $TWURL set default $USER
+
+# --------------------------------------------------------------------------- #
+  function tweet(){
+  
+    UPDATE="/1.1/statuses/update.json"
+
+    MEDIA=`echo "$*"       | #
+           rev             | #
+           cut -d " " -f 1 | #
+           rev`  
+    if [ `echo $MEDIA               | #
+          egrep ".jpg$|.png$|.gif$" | #
+          wc -l` -gt 0 ]; then
+
+    MEDIAIDS=`$TWURL -H upload.twitter.com \
+             "/1.1/media/upload.json"       \
+              -f $MEDIA -F media -X POST  | #
+              sed 's/,/\n/g'              | #
+              grep "media_id_string"      | #
+              cut -d ":" -f 2 | cut -d "\"" -f 2`
+
+          TEXT=`echo "$*"        | #
+                rev              | #
+                cut -d " " -f 2- | #
+                rev              | #
+                sed 's/&/+/g'`     # PREVENT ERROR (SUPERHACK!!)
+
+          if [ `echo "$*"      | #
+                sed 's/ /\n/g' | #
+                wc -l` -gt 1   ]; then
+                OPTIONS="media_ids=${MEDIAIDS}&status=${TEXT}"
+          else
+                OPTIONS="media_ids=${MEDIAIDS}"
+          fi
+    else
+          TEXT=`echo "$*"        | #
+                sed 's/&/+/g'`     # PREVENT ERROR (SUPERHACK!!)
+          OPTIONS="status=${TEXT}"
+    fi
+
+    if [ `echo $OPTIONSPLUS | wc -c` -gt 1 ]; then
+          OPTIONS="$OPTIONS$OPTIONSPLUS"
+    fi
+
+     TWEET=`$TWURL "$UPDATE" -r "$OPTIONS"`
+
+    if [ `echo $TWEET | grep '"errors":' | wc -l` -gt 0 ]
+     then
+          echo "There was an error. Deleting ${MEDIA%%.*}"
+          echo $TWEET
+        # rm ${MEDIA%%.*}.*
+          echo "$TWURL \"$UPDATE\" -d \"$OPTIONS\""
+          export TWTRPRT="error"
+    fi
+
+  }
+# --------------------------------------------------------------------------- #
+
