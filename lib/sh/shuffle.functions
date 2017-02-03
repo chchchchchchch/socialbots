@@ -1,0 +1,8 @@
+
+# FUNCTIONS
+# --------------------------------------------------------------------------- #
+  mkseed(){ openssl enc -aes-256-ctr -pass pass:"$1" \
+            -nosalt </dev/zero 2>/dev/null; }
+
+# shuf -n 1 --random-source=<(mkseed $SRCNAME)`
+
