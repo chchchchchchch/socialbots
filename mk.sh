@@ -141,7 +141,7 @@
 
       INJECT=`echo $NOISE            | # ASSUMED UTF-8
               sed "s/&/\\\\\&amp;/g" | #
-              sed "s/\"/\&quot;/g"`    #
+              sed "s/\"/\\\\\"/g"`     #
 
       sed -i "s/FOOXXX87653/$INJECT/" $SVGOUT
 
