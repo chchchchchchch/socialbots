@@ -145,7 +145,7 @@
               sed "s/&/\\\\\&amp;/g" | #
               sed "s/\"/\\\\\"/g"`     #
 
-    # TODO: SUBSTITUTE ONLY FIRST APPEARANCE, 
+    # TODO: SUBSTITUTE ONLY ONE APPEARANCE, 
     #       BLANK OUT REST
       sed -i "s/FOOXXX87653/$INJECT/" $SVGOUT
 
