@@ -1,0 +1,239 @@
+#!/bin/bash
+
+  OUTPUTDIR="_"
+  BASEURL="http://freeze.sh/_/2017/socialbots/o"
+
+
+  TMP=XXTMP
+  MENTIONDUMP=dump.mentions
+
+# --------------------------------------------------------------------------- #
+# FIRST THINGS FIRST
+# --------------------------------------------------------------------------- #
+  source lib/sh/twitter.functions
+  source lib/sh/ftp.functions
+ #source lib/sh/network.functions # TODO!
+
+# --------------------------------------------------------------------------- #
+# CHECK TIME
+# --------------------------------------------------------------------------- #
+  MINUTE=`date +%M | sed 's/^[0-9]//'`
+
+  if [ $MINUTE != 5 ];then
+# --------------------------------------------------------------------------- #
+#  CHECK/COLLECT IF THERE'S ANTYTHING TO REPLY TO
+# --------------------------------------------------------------------------- #
+
+  # GET MENTIONS INFO FROM TWITTER (+APPEND TO DUMP)
+  # ----------------------------------------------------------------------- # 
+  # getMentions >> $MENTIONDUMP
+
+  # --------------------------------------------------------------------- #
+  # FIND IDs MARKED AS DONE
+  # --------------------------------------------------------------------- # 
+    for IDDONE in `grep "^-XX[0-9]\{18\}" $MENTIONDUMP`
+     do
+      IDORIGINAL=`echo $IDDONE      | # DISPLAY ID
+                  sed 's/[^0-9]*//g'` # RM ALL BUT NUMBERS
+    # ----------------------------------------------------------------- #
+    # MARKED SAME IDs (IF UNMARKED) AS DONE
+    # ----------------------------------------------------------------- #
+      sed -i "s/^\(-\)\($IDORIGINAL\)/-XX\2/" $MENTIONDUMP
+    done
+  # --------------------------------------------------------------------- #
+  # CLEAN UP DUMP (REMOVE DUPLICATES PARAGRAPHS)
+  # --------------------------------------------------------------------- #
+    sed '/./{H;d;};x;s/\n/={NL}=/g' $MENTIONDUMP | #
+    sort -u | sed '1s/={NL}=//;s/={NL}=/\n/g' > ${TMP}.mentions
+    mv ${TMP}.mentions $MENTIONDUMP ; echo >> $MENTIONDUMP
+  # --------------------------------------------------------------------- # 
+  # CHECK UNDONE MENTIONS
+  # --------------------------------------------------------------------- # 
+    for IDUNDONE in `grep "^-[0-9]\{18\}" $MENTIONDUMP`
+      do
+         IDORIGINAL=`echo $IDUNDONE | # DISPLAY ID
+                  sed 's/[^0-9]*//g'` # RM ALL BUT NUMBERS
+
+        #sed '/./{H;d;};x;s/\n/={NL}=/g' $MENTIONDUMP | #
+        #grep -- "$IDUNDONE" | #
+        #sed '1s/={NL}=//;s/={NL}=/\n/g'
+
+         MENTION=`sed '/./{H;d;};x;s/\n/={NL}=/g' $MENTIONDUMP | #
+                  grep -- "$IDUNDONE"`
+
+         MESSAGE=`echo $MENTION         | #
+                  sed 's/={NL}=/\n/g'   | #
+                  grep -v "^-.*\{5,\}$" | #
+                  sed '/^[ ]*$/d'       | #
+                  head -n 1             | #
+                  sed 's/\\\u200b//g'   | #
+                  recode h0..utf-8`       #
+
+         MESSAGE=`echo -e "$MESSAGE "   | # START WITH TEXT
+                  sed 's/^[ \t]*//'     | # REMOVE LEADING BLANKS
+                  sed 's/[ \t]$//'      | # REMOVE CLOSING BLANKS
+                  sed 's/^@makebotbot[^a-zA-Z0-9]//'  | #
+                  sed 's/^.*@makebotbot://g'`
+
+             MID=`echo $MENTION | #
+                  sed 's/={NL}=/\n/g' | #
+                  grep -v "^-.*\{5,\}$" |#
+                  sed '/^[ ]*$/d' | head -n 2 | tail -n 1`
+           MFROM=`echo $MENTION | #
+                  sed 's/={NL}=/\n/g' | #
+                  grep -v "^-.*\{5,\}$" |#
+                  sed '/^[ ]*$/d' | head -n 3 | tail -n 1`
+
+        #NOISE=`fortune -n 120 -s | tr -s ' ' | #
+        #       sed 's/\\\u200b//g' | #
+        #       recode h0..utf-8`; MESSAGE="$NOISE"
+
+         OUTPUT="$OUTPUT "`./mk.sh "$MESSAGE" | cut -d ":" -f 2`
+         THISTWEET=`echo $OUTPUT | sed 's/ /\n/g' | #
+                    tail -n 1 | sed 's/\.svg$//'`-TWEET.txt
+         THISANCHOR=`basename $THISTWEET | sed 's/-TWEET\.txt$//'`
+         THISMESSAGE="@$MFROM →  $BASEURL/#$THISANCHOR -r=$MID"
+         echo "$THISMESSAGE" > $THISTWEET
+
+       # -------------------------------------------------------------- #
+       # MARK AS DONE
+       # -------------------------------------------------------------- #
+       # sed -i "s/^\(-\)\($IDORIGINAL\)/-XX\2/" $MENTIONDUMP
+    done
+
+  else
+# --------------------------------------------------------------------------- #
+#  OTHERWISE: BE SELF-RELIANT
+# --------------------------------------------------------------------------- #
+
+     OUTPUT=`./mk.sh | cut -d ":" -f 2`
+
+     THISTWEET=`echo $OUTPUT | sed 's/ /\n/g' | #
+                tail -n 1 | sed 's/\.svg$//'`-TWEET.txt
+     THISANCHOR=`basename $THISTWEET | sed 's/-TWEET\.txt$//'`
+     THISMESSAGE="@$MFROM →  $BASEURL/#$THISANCHOR -r=$MID"
+     echo "$THISMESSAGE" > $THISTWEET
+
+  fi
+
+# --------------------------------------------------------------------------- #
+#  G O  F  U   R   T    H     E     R
+# --------------------------------------------------------------------------- #
+  for O in `echo $OUTPUT | sed 's/ /\n/g'`
+   do
+      if [ -f $O ]; then
+
+        # ================================================================ #
+        # MAKE IMAGE FOR TWITTER
+        # ================================================================ #
+          TWITTERUPLOAD=${O%%.*}-TWEET.png 
+          C1="#ff0000";C2="#ff0000"
+          sed 's/#[fF]\{6\}/XxXxXx/g' $O | #
+          sed 's/stroke-width:[0-9.]*/stroke-width:2.5/g' | #
+          sed "s/fill:#[0-9a-fA-F]\{6\}/fill:$C1/g" | #
+          sed "s/stroke:#[0-9a-fA-F]\{6\}/stroke:$C2/g" | #
+          sed "s/XxXxXx/#ffffff/g" | #
+          sed '/show="twitter"/s/display:none/display:inline/g' | #
+          tee > ${TMP}.svg
+          inkscape --export-background-opacity=0 \
+                   --export-png=${TMP}.png ${TMP}.svg
+          convert ${TMP}.png -background "#FFFFFF" -flatten $TWITTERUPLOAD
+        # ---------------------------------------------------------------- #
+        # FORCE PNG ON TWITTER
+        # ---------------------------------------------------------------- #
+        # MAKE 1 PIXEL 99% OPAQUE (THIS REALLY SHOULD BE DONE DIFFERENT!)
+        # ---------------------------------------------------------------- #
+        # MAKE PIXEL FULL TRANSPARENT ------------------------------------ #
+          convert $TWITTERUPLOAD -alpha on -fill none \
+                               -draw 'color 0,0 point' ${TMP}.1.png
+        # MAKE FULL IMAGE 99% OPAQUE ------------------------------------- #
+          convert $TWITTERUPLOAD -alpha set -channel A \
+                                 -evaluate set 99% ${TMP}.2.png
+        # COMBINE -------------------------------------------------------- #
+          composite -gravity center \
+                    ${TMP}.1.png ${TMP}.2.png \
+                    $TWITTERUPLOAD
+        # CLEAN UP ------------------------------------------------------- #
+          rm ${TMP}.1.png ${TMP}.2.png
+        # ---------------------------------------------------------------- #
+        # tweet $TWITTERUPLOAD
+
+        # ================================================================ #
+        # PREPARE UPLOAD FOR FREEZE
+        # ================================================================ #
+                  IMG=$TWITTERUPLOAD
+               ANCHOR=`basename $IMG | cut -d "." -f 1 | cut -c 1-5`
+               IMGSRC=`basename ${O%%.*}.png`
+              HREFSVG=`basename $O`
+              HREFPDF=""
+          HTMLELEMENT=`echo "<table class=\"floin\" id=\"$ANCHOR\">
+                       <tr><td colspan=\"2\"
+                               class=\"px\">
+                       <a href=\"$HREF\">
+                       <img src=\"$IMGSRC\"/></a>
+                       </td></tr><tr><td class=\"t l\">
+                       .<a href=\"$HREFSVG\">svg</a> (EDITABLE)
+                       </td><td class="t r">
+                       .<a href=\"$HREFPDF\">pdf</a> (FLATTENED)
+                       </td></tr></table>"`
+          HTMLADD="${HTMLADD}={NL}=${HTMLELEMENT}"
+          FTPCOLLECT="$FTPCOLLECT $O $IMG"
+
+         else
+               echo "SOMETHING WENT WRONG"
+               echo "$OUTPUT"
+      fi
+
+  done
+
+# --------------------------------------------------------------------------- #
+# UPDATE FREEZE.SH
+# --------------------------------------------------------------------------- #
+  # ----------------------------------------------------------------------- #
+  # GET/UPDATE HTML
+  # ----------------------------------------------------------------------- #
+    ADDHERE="^<!-- = INJECT HERE =* -->$"
+    HTMLTMP=${TMP}.REMOTE.html
+    HTMLREMOTE="http://freeze.sh/_/2017/socialbots/o/index.html"
+    HTMLNEW=`basename $HTMLREMOTE`
+    wget --no-check-certificate \
+         -O $HTMLTMP             \
+         $HTMLREMOTE > /dev/null 2>&1
+    HTMLADD=`echo $HTMLADD | tr -s ' ' | #
+             sed 's/>[ ]*</></g'`
+    sed "s,${ADDHERE},${HTMLADD}\n\n&,g" $HTMLTMP | #
+    sed 's/={NL}=/\n\n/g' > $HTMLNEW
+
+  # ----------------------------------------------------------------------- #
+  # UPLOAD FILES ONLY
+  # ----------------------------------------------------------------------- #
+  # ftpUpload $FTPCOLLECT $HTMLNEW
+
+# --------------------------------------------------------------------------- #
+# TWEET
+# --------------------------------------------------------------------------- #
+  for T in `ls $OUTPUTDIR/*-TWEET.txt`
+   do
+      if [ -f $T ] && 
+         [ -f ${T%%.*}.png ]
+      then
+           echo `cat $T` ${T%%.*}.png
+          #tweet `cat $T` ${T%%.*}.png
+           rm $T # ${T%%.*}.png
+      else
+           echo "SOMETHING WAS WRONG($T); DO NOT TWEET"
+      fi
+  done
+
+  # ----------------------------------------------------------------------- #
+  # UPLOAD INDEX
+  # ----------------------------------------------------------------------- #
+  # ftpUpload $HTMLNEW
+
+# --------------------------------------------------------------------------- #
+# CLEAN UP / RM TEMPORARY FILES
+# --------------------------------------------------------------------------- #
+ #rm $HTMLNEW
+
+exit 0;
+
