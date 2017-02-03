@@ -81,7 +81,7 @@
    do
        ADDINPUTLAYERS=`echo $LAYERS2INPUT | # 
                        sed 's/ /\n/g'     | #
-                       grep $BASETYPE`
+                       grep $BASETYPE`      #
        ALLOFTYPE=`sed ':a;N;$!ba;s/\n/ /g' ${SVG%%.*}.tmp  | #
                   sed 's/scape:label/\nlabel/g'            | #
                   grep ^label                              | #
