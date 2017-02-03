@@ -20,9 +20,17 @@
 # --------------------------------------------------------------------------- #
 # CONFIGURATION 
 # --------------------------------------------------------------------------- #
-  SRC=E/000000_notabotyet.svg
   OUTDIR=_
-  
+  SRC=E/000000_notabotyet.svg
+
+ 
+# --------------------------------------------------------------------------- #
+# CHECK INPUT
+# --------------------------------------------------------------------------- #
+  if [ `echo $* | wc -c` -gt 1 ]; then 
+        INSERTTXT="YES";NOISE="$*"
+   else INSERTTXT="NO"; NOISE="" ; fi
+
 # =========================================================================== #
 # DO IT NOW!
 # =========================================================================== #
@@ -41,6 +49,15 @@
   sed "s/^[ \t]*//"                      | # REMOVE LEADING BLANKS
   tr -s ' '                              | # REMOVE CONSECUTIVE BLANKS
   tee > ${SVG%%.*}.tmp                     # WRITE TO TEMPORARY FILE
+# --------------------------------------------------------------------------- #
+# FIND LAYERS THAT ALLOW INPUT
+# --------------------------------------------------------------------------- #
+  LAYERS2INPUT=`grep "flowRoot" ${SVG%%.*}.tmp     | #
+                sed '/^<g/s/>/&\n/g'               | # FIRST '>' ON NEWLINE
+                grep ':groupmode="layer"'          | #
+                sed '/^<g/s/scape:label/\nlabel/'  | #
+                grep ^label                        | #
+                cut -d "\"" -f 2`
 
 # --------------------------------------------------------------------------- #
 # GENERATE CODE FOR FOR-LOOP TO EVALUATE COMBINATIONS
@@ -48,22 +65,15 @@
   # RESET (IMPORTANT FOR 'FOR'-LOOP)
   LOOPSTART="";VARIABLES="";LOOPCLOSE="";CNT=0
 
-  for BASETYPE in `sed ':a;N;$!ba;s/\n/ /g' ${SVG%%.*}.tmp | #
-                   sed 's/<g/\n&/g'                  | # GROUPS ON NEWLINE
-                   sed '/^<g/s/>/&\n/g'              | # FIRST ON '>' ON NEWLINE
-                   grep ':groupmode="layer"'         | #
-                   sed '/^<g/s/scape:label/\nlabel/' | #
-                   grep ^label                       | #
+  for BASETYPE in `sed 's/>/&\n/g' ${SVG%%.*}.tmp    | # ALL '>' ON NEWLINE
+                   grep ':groupmode="layer"'         | # SELECT LAYER GROUPS
+                   sed '/^<g/s/scape:label/\nlabel/' | # PUT NAME LABEL ON NL
+                   grep ^label                       | # EXTRACT NAME
                    cut -d "\"" -f 2                  | #
                    cut -d "-" -f 1                   | #
                    sort -u`
    do
-#      ALLOFTYPE=`sed ':a;N;$!ba;s/\n/ /g' ${SVG%%.*}.tmp  | #
-#                 sed 's/scape:label/\nlabel/g'            | #
-#                 grep ^label                              | #
-#                 cut -d "\"" -f 2                         | #
-#                 grep $BASETYPE                           | #
-#                 sort -u`                                   #
+       ADDINPUTLAYERS=`echo $LAYERS2INPUT | grep $BASETYPE`
        ALLOFTYPE=`sed ':a;N;$!ba;s/\n/ /g' ${SVG%%.*}.tmp  | #
                   sed 's/scape:label/\nlabel/g'            | #
                   grep ^label                              | #
@@ -71,6 +81,8 @@
                   grep $BASETYPE                           | #
                   sort -u                                  | #
                   shuf -n 2`
+       ALLOFTYPE=`echo $ALLOFTYPE $ADDINPUTLAYERS | #
+                  sed 's/ /\n/g' | sort -u`
 
        LOOPSTART=${LOOPSTART}"for V$CNT in $ALLOFTYPE; do "
        VARIABLES=${VARIABLES}'$'V${CNT}" "
@@ -84,27 +96,26 @@
   KOMBILIST=kombinationen.list ; if [ -f $KOMBILIST ]; then rm $KOMBILIST ; fi
   eval ${LOOPSTART}" echo $VARIABLES >> $KOMBILIST ;"${LOOPCLOSE}
 
+  LAYERS2INPUT=`echo $LAYERS2INPUT | sed 's/ /|/g'`
+  if [ "Y$INSERTTXT" == "YYES" ];then GREP="egrep"; else GREP="egrep -v"; fi
 # --------------------------------------------------------------------------- #
 # WRITE SVG FILES ACCORDING TO POSSIBLE COMBINATIONS
 # --------------------------------------------------------------------------- #
+  SVGHEADER=`head -n 1 ${SVG%%.*}.tmp`   
 
-  SVGHEADER=`head -n 1 ${SVG%%.*}.tmp`
-
-  for KOMBI in `cat $KOMBILIST | sed 's/ /DHSZEJDS/g'`
+  for KOMBI in `cat $KOMBILIST               | # USELESS USE OF CAT
+                eval $GREP \"$LAYERS2INPUT\" | #
+                shuf                         | # DOES THIS MAKE SENSE?
+                sed 's/ /DHSZEJDS/g'`          # PLACEHOLDER FOR SPACES
    do
       KOMBI=`echo $KOMBI | sed 's/DHSZEJDS/ /g'`
-      NAME=`echo $KOMBI | md5sum | #
-            cut -d " " -f 1 | cut -c 1-12 | #
-            tr [:lower:] [:upper:]`
+       NAME=`echo $KOMBI | md5sum | #
+             cut -d " " -f 1 | cut -c 1-12 | #
+             tr [:lower:] [:upper:]`
       SVGOUT=$OUTDIR/B${NAME}.svg
 
-    # RANDOMIZE Z (IF) / RANDOM SEED
-    # -------------------------------------------  #
-    # if zpos="r" (SEED = LAYERNAME + KOMBI)
-    # below OR above
-
     # ONLY WRITE IF NOT YET DONE
-    # -------------------------------------------  #
+    # -------------------------------------------------------------------  #
 
       if [ ! -f $SVGOUT ] && [ "Y$DONE" != "YYES" ];then
 
@@ -117,47 +128,13 @@
       echo "</svg>"                                      >> $SVGOUT
       rm ${SVGOUT}.tmp
 
-#   # MAKE IDs UNIQ
-#   # -------------------------------------------  #
-#   ( IFS=$'\n'
-#     for OLDID in `sed 's/id="/\n&/g' $SVGOUT | #
-#                   grep "^id=" | cut -d "\"" -f 2`
-#      do
-#         NEWID=`echo $SVGOUT$OLDID | md5sum | #
-#                cut -c 1-9 | tr [:lower:] [:upper:]`
-#         sed -i "s,id=\"$OLDID\",id=\"$NEWID\",g" $SVGOUT
-#         sed -i "s,url(#$OLDID),url(#$NEWID),g"   $SVGOUT
-#     done; )
-
-#   # DO SOME CLEAN UP
-#   # -------------------------------------------  #
-#     inkscape --vacuum-defs              $SVGOUT  # INKSCAPES VACUUM CLEANER
-#     NLFOO=Nn${RANDOM}lL                          # RANDOM PLACEHOLDER
-#     sed -i ":a;N;\$!ba;s/\n/$NLFOO/g"   $SVGOUT  # FOR LINEBREAKS
-
-#     cat $SVGOUT                             | # USELESS USE OF CAT
-#     sed "s,<defs,\n<defs,g"                 | #
-#     sed "s,</defs>,</defs>\n,g"             | #
-#     sed "/<\/defs>/!s/\/>/&\n/g"            | # SEPARATE DEFS
-#     sed "s,</sodipodi:[^>]*>,&\n,g"         | #
-#     sed "s,<.\?sodipodi,\nXXX&,g"           | #
-#     sed "/<\/sodipodi:[^>]*>/!s/\/>/&\n/g"  | # MARK TO RM SODIPODI
-#     sed "/^XXX.*/d"                         | # RM MARKED LINE
-#     tr -d '\n'                              | # DE-LINEBREAK (AGAIN)
-#     sed "s,<metadata,\nXXX&,g"              | #
-#     sed "s,</metadata>,&\n,g"               | #
-#     sed "/<\/metadata>/!s/\/>/&\n/g"        | # MARK TO RM METADATA
-#     sed "/^XXX.*/d"                         | # RM MARKED LINE
-#     sed "s/$NLFOO/\n/g"                     | # RESTORE LINEBREAKS
-#     sed "/^[ \t]*$/d"                       | # DELETE EMPTY LINES
-#     tee > ${SVG%%.*}.X.tmp                    # WRITE TO FILE
-
-#     mv ${SVG%%.*}.X.tmp $SVGOUT
-
-#     SRCSTAMP="<!-- Based on "`basename $SVG`" ("`date +%d.%m.%Y" "%T`")-->"
-#     sed -i "1s,^.*$,&\n$SRCSTAMP,"     $SVGOUT
+    # CHECK R/W REPLACEMENT !!!!
+    # CHECK THE GREAT ESCAPE !!!!
+      sed -i "s/FOOXXX87653/$NOISE/" $SVGOUT
 
       DONE="YES"
+
+     #cp $SVGOUT dev.svg # = DEBUG/DEV => RM WHEN READY
 
       else
            sleep 0; # echo "$SVGOUT exists"
