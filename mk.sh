@@ -139,9 +139,11 @@
       echo "</svg>"                                      >> $SVGOUT
       rm ${SVGOUT}.tmp
 
-    # CHECK R/W REPLACEMENT !!!!
-    # CHECK THE GREAT ESCAPE !!!!
-      sed -i "s/FOOXXX87653/$NOISE/" $SVGOUT
+      INJECT=`echo $NOISE            | # ASSUMED UTF-8
+              sed "s/&/\\\\\&amp;/g" | #
+              sed "s/\"/\&quot;/g"`    #
+
+      sed -i "s/FOOXXX87653/$INJECT/" $SVGOUT
 
       DONE="YES"
 
