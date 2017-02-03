@@ -111,7 +111,7 @@
      THISTWEET=`echo $OUTPUT | sed 's/ /\n/g' | #
                 tail -n 1 | sed 's/\.svg$//'`-TWEET.txt
      THISANCHOR=`basename $THISTWEET | sed 's/-TWEET\.txt$//'`
-     THISMESSAGE="@$MFROM →  $BASEURL/#$THISANCHOR -r=$MID"
+     THISMESSAGE="@$MFROM →  $BASEURL/#$THISANCHOR"
      echo "$THISMESSAGE" > $THISTWEET
 
   fi
