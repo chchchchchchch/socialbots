@@ -86,7 +86,7 @@
                   cut -d "\"" -f 2                         | #
                   grep $BASETYPE                           | #
                   sort -u                                  | #
-                  shuf -n 2`
+                  shuf -n 4`
        ALLOFTYPE=`echo $ALLOFTYPE $ADDINPUTLAYERS | #
                   sed 's/ /\n/g' | sort -u`
 
@@ -114,16 +114,18 @@
                 shuf                         | # DOES THIS MAKE SENSE?
                 sed 's/ /DHSZEJDS/g'`          # PLACEHOLDER FOR SPACES
    do
-      KOMBI=`echo $KOMBI | sed 's/DHSZEJDS/ /g'`
-       NAME=`echo $KOMBI | md5sum | #
-             cut -d " " -f 1 | cut -c 1-12 | #
-             tr [:lower:] [:upper:]`
-      SVGOUT=$OUTDIR/B${NAME}.svg
+      if [ "$DONE" != "YES" ];then
+
+            KOMBI=`echo $KOMBI | sed 's/DHSZEJDS/ /g'`
+             NAME=`echo $KOMBI | md5sum | #
+                   cut -d " " -f 1 | cut -c 1-12 | #
+                   tr [:lower:] [:upper:]`
+            SVGOUT=$OUTDIR/B${NAME}.svg
 
     # ONLY WRITE IF NOT YET DONE
     # -------------------------------------------------------------------  #
 
-      if [ ! -f $SVGOUT ] && [ "Y$DONE" != "YYES" ];then
+      if [ ! -f $SVGOUT ] && [ "$DONE" != "YES" ];then
 
       echo "WRITING: $SVGOUT"
 
@@ -149,6 +151,8 @@
 
       else
            sleep 0; # echo "$SVGOUT exists"
+      fi
+
       fi
   done
 
