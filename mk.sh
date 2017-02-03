@@ -22,6 +22,7 @@
 # --------------------------------------------------------------------------- #
   OUTDIR=_
   SRC=E/000000_notabotyet.svg
+  FOO="FOOXXX87653"
 # --------------------------------------------------------------------------- #
 # CONFIGURATION 
 # --------------------------------------------------------------------------- #
@@ -55,7 +56,7 @@
 # --------------------------------------------------------------------------- #
 # FIND LAYERS THAT ALLOW INPUT
 # --------------------------------------------------------------------------- #
-  LAYERS2INPUT=`grep "flowRoot" ${SVG%%.*}.tmp     | #
+  LAYERS2INPUT=`grep "$FOO" ${SVG%%.*}.tmp         | #
                 sed '/^<g/s/>/&\n/g'               | # FIRST '>' ON NEWLINE
                 grep ':groupmode="layer"'          | #
                 sed '/^<g/s/scape:label/\nlabel/'  | #
@@ -78,7 +79,9 @@
                    cut -d "-" -f 1                   | #
                    sort -u`
    do
-       ADDINPUTLAYERS=`echo $LAYERS2INPUT | grep $BASETYPE`
+       ADDINPUTLAYERS=`echo $LAYERS2INPUT | # 
+                       sed 's/ /\n/g'     | #
+                       grep $BASETYPE`
        ALLOFTYPE=`sed ':a;N;$!ba;s/\n/ /g' ${SVG%%.*}.tmp  | #
                   sed 's/scape:label/\nlabel/g'            | #
                   grep ^label                              | #
@@ -144,13 +147,12 @@
       INJECT=`echo $NOISE            | # ASSUMED UTF-8
               sed "s/&/\\\\\&amp;/g" | #
               sed "s/\"/\\\\\"/g"`     #
+       LN=`grep -n $FOO $SVGOUT | cut -d ":" -f 1 | #
+           shuf -n 1 --random-source=<(mkseed $NAME)`
+      sed -i "${LN}s/$FOO/$INJECT/g" $SVGOUT
+      sed -i "s/$FOO//g" $SVGOUT
 
-    # TODO: SUBSTITUTE ONLY ONE APPEARANCE, 
-    #       BLANK OUT REST
-      sed -i "s/FOOXXX87653/$INJECT/" $SVGOUT
-
-      DONE="YES"
-
+           DONE="YES"
       else
            sleep 0; # echo "$SVGOUT exists"
       fi
