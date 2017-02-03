@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# PERMUTE SVG LAYERS                                                          #
+# WAS: PERMUTE SVG LAYERS; IS: A BIT MORE COMPLICATED                         #
 # --------------------------------------------------------------------------- #
 # copyright (c) 2017 Christoph Haag                                           #
 # --------------------------------------------------------------------------- #
@@ -22,7 +22,10 @@
 # --------------------------------------------------------------------------- #
   OUTDIR=_
   SRC=E/000000_notabotyet.svg
-
+# --------------------------------------------------------------------------- #
+# CONFIGURATION 
+# --------------------------------------------------------------------------- #
+  source lib/sh/shuffle.functions
  
 # --------------------------------------------------------------------------- #
 # CHECK INPUT
@@ -44,7 +47,7 @@
   sed ':a;N;$!ba;s/\n/ /g'               | # REMOVE ALL LINEBREAKS
   sed 's/4Fgt7R/\n<g/g'                  | # RESTORE LAYERGROUP OPEN + NEWLINE
   sed 's/display:none/display:inline/g'  | # MAKE VISIBLE EVEN WHEN HIDDEN
-  grep -v 'label="XX_'                   | # REMOVE EXCLUDED LAYERS
+ #grep -v 'label="XX_'                   | # REMOVE EXCLUDED LAYERS
   sed 's/<\/svg>/\n&/g'                  | # CLOSE TAG ON SEPARATE LINE
   sed "s/^[ \t]*//"                      | # REMOVE LEADING BLANKS
   tr -s ' '                              | # REMOVE CONSECUTIVE BLANKS
@@ -57,6 +60,7 @@
                 grep ':groupmode="layer"'          | #
                 sed '/^<g/s/scape:label/\nlabel/'  | #
                 grep ^label                        | #
+                grep -v "XX_"                      | # IGNORE XXCLUDED LAYERS
                 cut -d "\"" -f 2`
 
 # --------------------------------------------------------------------------- #
@@ -69,6 +73,7 @@
                    grep ':groupmode="layer"'         | # SELECT LAYER GROUPS
                    sed '/^<g/s/scape:label/\nlabel/' | # PUT NAME LABEL ON NL
                    grep ^label                       | # EXTRACT NAME
+                   grep -v "XX_"                     | # IGNORE XXCLUDED LAYERS
                    cut -d "\"" -f 2                  | #
                    cut -d "-" -f 1                   | #
                    sort -u`
@@ -77,6 +82,7 @@
        ALLOFTYPE=`sed ':a;N;$!ba;s/\n/ /g' ${SVG%%.*}.tmp  | #
                   sed 's/scape:label/\nlabel/g'            | #
                   grep ^label                              | #
+                  grep -v "XX_"                            | # IGNORE XXCLUDED LAYERS
                   cut -d "\"" -f 2                         | #
                   grep $BASETYPE                           | #
                   sort -u                                  | #
@@ -120,6 +126,11 @@
       if [ ! -f $SVGOUT ] && [ "Y$DONE" != "YYES" ];then
 
       echo "WRITING: $SVGOUT"
+
+      grep -n 'label="XX_DEKO' ${SVG%%.*}.tmp   | #
+      shuf -n 2 --random-source=<(mkseed $NAME) | # SELECT (NOT SO) RANDOM
+      sed 's/display:inline/display:none/g'       > ${SVGOUT}.tmp
+
       head -n 1 ${SVG%%.*}.tmp                           >  $SVGOUT
       for  LAYERNAME in `echo $KOMBI`
         do grep -n "label=\"$LAYERNAME\"" ${SVG%%.*}.tmp >> ${SVGOUT}.tmp
@@ -133,8 +144,6 @@
       sed -i "s/FOOXXX87653/$NOISE/" $SVGOUT
 
       DONE="YES"
-
-     #cp $SVGOUT dev.svg # = DEBUG/DEV => RM WHEN READY
 
       else
            sleep 0; # echo "$SVGOUT exists"
