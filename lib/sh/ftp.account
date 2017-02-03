@@ -1,0 +1,4 @@
+USER:user
+PASS:secretpasswort
+HOST:domain.com
+PORT:21

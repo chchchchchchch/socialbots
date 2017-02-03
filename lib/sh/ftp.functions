@@ -1,0 +1,45 @@
+
+  FTPLOGIN=lib/sh/ftp.account
+  FTPTMP=$TMPDIR/ftp.input
+
+  REMOTEDIR=.
+
+# --------------------------------------------------------------------------- #
+      function ftpUpload() {
+    
+        USER=`grep "USER:" $FTPLOGIN | cut -d ":" -f 2`
+        PASS=`grep "PASS:" $FTPLOGIN | cut -d ":" -f 2`
+        HOST=`grep "HOST:" $FTPLOGIN | cut -d ":" -f 2`
+        PORT=`grep "PORT:" $FTPLOGIN | cut -d ":" -f 2`
+        ACCESS="user $USER $PASS" ; SERVER="$HOST $PORT"
+    
+      # ----------------------------------------------------- #
+      # START CONTROL FILE (USED LATER FOR UPLOAD)
+      # ----------------------------------------------------- #
+        echo "$ACCESS"                             >  $FTPTMP
+      # ----------------------------------------------------- #
+        for FILE in $*
+         do
+            FUPLD=`basename $FILE`
+          # ------------------------------------ #
+          # ADD 'PUT' COMMAND TO CONTROL FILE
+          # ------------------------------------ #
+            echo "put $FILE $REMOTEDIR/${FUPLD}"   >> $FTPTMP
+        done
+      # ----------------------------------------------------- #
+      # ADD 'CLOSE CONNECTION' COMMAND TO CONTROL FILE
+      # ----------------------------------------------------- #
+        echo "bye"                                 >> $FTPTMP
+      # ----------------------------------------------------- #
+      # EXECUTE CONTROL FILE
+      # ----------------------------------------------------- #
+        ftp -i -p -n $SERVER                       <  $FTPTMP
+      # ----------------------------------------------------- #
+      # REMOVE CONTROL FILE
+      # ----------------------------------------------------- #
+        rm $FTPTMP
+      # ----------------------------------------------------- #
+    
+      }
+# --------------------------------------------------------------------------- #
+
