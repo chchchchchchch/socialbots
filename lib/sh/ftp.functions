@@ -1,6 +1,6 @@
 
   FTPLOGIN=lib/sh/ftp.account
-  FTPTMP=$TMPDIR/ftp.input
+  FTPTMP=${TMP}.ftp.input
 
   REMOTEDIR=.
 
