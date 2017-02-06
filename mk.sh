@@ -57,7 +57,6 @@
 # --------------------------------------------------------------------------- #
 # CHOOSE LAYERS THAT ALLOW INPUT (OR NOT)
 # --------------------------------------------------------------------------- #
-  if [ "$INSERTTXT" == "NO" ];then
   LAYERS2INPUT=`grep "$FOO" ${SVG%%.*}.tmp         | #
                 sed '/^<g/s/>/&\n/g'               | # FIRST '>' ON NEWLINE
                 grep ':groupmode="layer"'          | #
@@ -65,21 +64,33 @@
                 grep ^label                        | #
                 grep -v "XX_"                      | # IGNORE XXCLUDED LAYERS
                 cut -d "\"" -f 2`
-  else
-       for INPUT in `grep -n 'charsallowed="' ${SVG%%.*}.tmp | #
-                     cut -d ":" -f 1`
-        do 
-           CHARSALLOWED=`sed -n "${INPUT}p" ${SVG%%.*}.tmp | #
-                         sed 's/charsallowed=/\n&/g' | #
-                         grep -n '^charsallowed="' | cut -d "\"" -f 2`
-           if [ "$CHARSALLOWED" -ge "$CHARSNEEDED" ]; then
-                 LAYERNAME=`sed -n "${INPUT}p" ${SVG%%.*}.tmp | #
-                            sed 's/scape:label/\nlabel/g' | #
-                            grep -v "XX_" | #
-                            grep -n '^label' | cut -d "\"" -f 2`
-                 LAYERS2INPUT="$LAYERS2INPUT $LAYERNAME"
-           fi
-       done
+
+  if [ "$INSERTTXT" == "YES" ];then 
+        for INPUT in `grep -n 'charsallowed="' ${SVG%%.*}.tmp | #
+                      cut -d ":" -f 1`
+         do 
+            CHARSALLOWED=`sed -n "${INPUT}p" ${SVG%%.*}.tmp | #
+                          sed 's/charsallowed=/\n&/g' | #
+                          grep -n '^charsallowed="' | cut -d "\"" -f 2`
+            if [ "$CHARSALLOWED" -ge "$CHARSNEEDED" ]; then
+                  LAYERNAME=`sed -n "${INPUT}p" ${SVG%%.*}.tmp | #
+                             sed 's/scape:label/\nlabel/g' | #
+                             grep -v "XX_" | #
+                             grep -n '^label' | cut -d "\"" -f 2`
+                  INPUTHERE="$INPUTHERE $LAYERNAME"
+            fi
+        done
+        INPUTHERE=`echo $INPUTHERE | # ALL POSSIBLE
+                   sed 's/ /\n/g'  | # SEPARATE ON LINES
+                   shuf -n 1 `       # SELECT ONE
+        DONOTINPUTHERE=`echo $LAYERS2INPUT |  # ALL INPUTS
+                        sed 's/ /\n/g'     |  # SEPARATE ON LINES
+                        grep -v "$INPUTHERE"` # RM SELECTED INPUT
+        DONOTINPUTHERE=`echo $DONOTINPUTHERE | sed 's/ /|/g'`
+        INPUTFILTER="egrep \"$INPUTHERE\" | egrep -v \"$DONOTINPUTHERE\"";
+   else 
+        DONOTINPUTHERE=`echo $LAYERS2INPUT | sed 's/ /|/g'`
+        INPUTFILTER="egrep -v \"$DONOTINPUTHERE\"";
   fi
 
 # --------------------------------------------------------------------------- #
@@ -123,15 +134,13 @@
   KOMBILIST=kombinationen.list ; if [ -f $KOMBILIST ]; then rm $KOMBILIST ; fi
   eval ${LOOPSTART}" echo $VARIABLES >> $KOMBILIST ;"${LOOPCLOSE}
 
-  LAYERS2INPUT=`echo $LAYERS2INPUT | sed 's/ /|/g'`
-  if [ "Y$INSERTTXT" == "YYES" ];then GREP="egrep"; else GREP="egrep -v"; fi
 # --------------------------------------------------------------------------- #
 # WRITE SVG FILES ACCORDING TO POSSIBLE COMBINATIONS
 # --------------------------------------------------------------------------- #
   SVGHEADER=`head -n 1 ${SVG%%.*}.tmp`   
 
   for KOMBI in `cat $KOMBILIST               | # USELESS USE OF CAT
-                eval $GREP \"$LAYERS2INPUT\" | #
+                eval $INPUTFILTER | #
                 shuf                         | # DOES THIS MAKE SENSE?
                 sed 's/ /DHSZEJDS/g'`          # PLACEHOLDER FOR SPACES
    do
