@@ -18,9 +18,19 @@
 # --------------------------------------------------------------------------- #
   function tweet(){
   
-    UPDATE="/1.1/statuses/update.json"
+    UPDATE="/1.1/statuses/update.json" # TODO?: MOVE OUTSIDE ?
 
-    MEDIA=`echo "$*"       | #
+    FLAGS=`echo "$*" | #
+           sed 's/ -.=[^ ]*\b/\n&/g' | #
+           grep "^ -.=" | cut -d " " -f 2`
+    ISREPLY=`echo $FLAGS | sed 's/ /\n/' | #
+             grep -- "^-r" | #
+             head -n 1 | cut -d "=" -f 2 | #
+             sed 's/^[0-9]/\&in_reply_to_status_id=&/'`
+
+    INPUTMINUSFLAGS=`echo $* | sed 's/ -.=[^ ]*\b//g'`
+    I="$INPUTMINUSFLAGS"
+    MEDIA=`echo "$I"       | #
            rev             | #
            cut -d " " -f 1 | #
            rev`  
@@ -35,13 +45,13 @@
               grep "media_id_string"      | #
               cut -d ":" -f 2 | cut -d "\"" -f 2`
 
-          TEXT=`echo "$*"        | #
+          TEXT=`echo "$I"        | #
                 rev              | #
                 cut -d " " -f 2- | #
                 rev              | #
                 sed 's/&/+/g'`     # PREVENT ERROR (SUPERHACK!!)
 
-          if [ `echo "$*"      | #
+          if [ `echo "$I"      | #
                 sed 's/ /\n/g' | #
                 wc -l` -gt 1   ]; then
                 OPTIONS="media_ids=${MEDIAIDS}&status=${TEXT}"
@@ -49,16 +59,16 @@
                 OPTIONS="media_ids=${MEDIAIDS}"
           fi
     else
-          TEXT=`echo "$*"        | #
+          TEXT=`echo "$I"        | #
                 sed 's/&/+/g'`     # PREVENT ERROR (SUPERHACK!!)
           OPTIONS="status=${TEXT}"
     fi
 
-    if [ `echo $OPTIONSPLUS | wc -c` -gt 1 ]; then
-          OPTIONS="$OPTIONS$OPTIONSPLUS"
-    fi
+  # if [ `echo $OPTIONSPLUS | wc -c` -gt 1 ]; then
+  #       OPTIONS="$OPTIONS$OPTIONSPLUS"
+  # fi
 
-     TWEET=`$TWURL "$UPDATE" -r "$OPTIONS"`
+    TWEET=`$TWURL "$UPDATE" -r "$OPTIONS${ISREPLY}"`
 
     if [ `echo $TWEET | grep '"errors":' | wc -l` -gt 0 ]
      then
@@ -67,8 +77,53 @@
         # rm ${MEDIA%%.*}.*
           echo "$TWURL \"$UPDATE\" -d \"$OPTIONS\""
           export TWTRPRT="error"
+    else
+
+    STATUSID=`echo $TWEET       | #
+              sed 's/","/\n/g'  | #
+              sed 's/id/\nid/g' | #
+              grep '^id":'      | #
+              head -n 1         | #
+              sed 's/[^0-9]*//g'` # RM ALL BUT NUMBERS
     fi
 
   }
+# --------------------------------------------------------------------------- #
+  function getMentions() {
+
+  $TWURL /1.1/statuses/mentions_timeline.json > ${TMP}.timeline
+
+ ( IFS=$'\n'
+   for MENTION in `sed 's/{"created_at/\nXXXXXXX/g' ${TMP}.timeline |#
+                   grep "^XXXXXXX"`
+    do
+      MENTIONTXT=`echo $MENTION    | #
+                  sed 's/","/\n/g' | #
+                  grep '^text"'    | #
+                  sed 's/^text":"//'`
+      MENTIONID=`echo $MENTION     | #
+                 sed 's/","/\n/g'  | #
+                 sed 's/id/\nid/g' | #
+                 grep '^id":'      | #
+                 head -n 1         | #
+                 sed 's/[^0-9]*//g'` # RM ALL BUT NUMBERS
+      MENTIONFROM=`echo $MENTION            | #
+                   sed 's/","/\n/g'         | #
+                   grep '^screen_name"'     | #
+                   sed 's/^screen_name":"//'` #
+      echo ""
+      echo "-${MENTIONID}-----------------"
+      echo  $MENTIONTXT
+      echo  $MENTIONID
+      echo  $MENTIONFROM
+      echo "--------------------------------------"
+      echo ""
+
+  done )
+
+  rm ${TMP}.timeline
+ 
+
+ }
 # --------------------------------------------------------------------------- #
 
