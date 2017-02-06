@@ -31,9 +31,11 @@
 # --------------------------------------------------------------------------- #
 # CHECK INPUT
 # --------------------------------------------------------------------------- #
-  if [ `echo $* | wc -c` -gt 1 ]; then 
-        INSERTTXT="YES";NOISE="$*"
-   else INSERTTXT="NO"; NOISE="" ; fi
+  if [ `echo $* | wc -c` -le 1 ]; then 
+        INSERTTXT="NO"
+        NOISE="";CHARSNEEDED="0"
+   else INSERTTXT="YES";NOISE=`echo $* | sed 's/^[ ]*//g'`
+        CHARSNEEDED=`echo $NOISE | wc -c`; fi
 
 # =========================================================================== #
 # DO IT NOW!
@@ -48,14 +50,14 @@
   sed ':a;N;$!ba;s/\n/ /g'               | # REMOVE ALL LINEBREAKS
   sed 's/4Fgt7R/\n<g/g'                  | # RESTORE LAYERGROUP OPEN + NEWLINE
   sed 's/display:none/display:inline/g'  | # MAKE VISIBLE EVEN WHEN HIDDEN
- #grep -v 'label="XX_'                   | # REMOVE EXCLUDED LAYERS
   sed 's/<\/svg>/\n&/g'                  | # CLOSE TAG ON SEPARATE LINE
   sed "s/^[ \t]*//"                      | # REMOVE LEADING BLANKS
   tr -s ' '                              | # REMOVE CONSECUTIVE BLANKS
   tee > ${SVG%%.*}.tmp                     # WRITE TO TEMPORARY FILE
 # --------------------------------------------------------------------------- #
-# FIND LAYERS THAT ALLOW INPUT
+# CHOOSE LAYERS THAT ALLOW INPUT (OR NOT)
 # --------------------------------------------------------------------------- #
+  if [ "$INSERTTXT" == "NO" ];then
   LAYERS2INPUT=`grep "$FOO" ${SVG%%.*}.tmp         | #
                 sed '/^<g/s/>/&\n/g'               | # FIRST '>' ON NEWLINE
                 grep ':groupmode="layer"'          | #
@@ -63,6 +65,22 @@
                 grep ^label                        | #
                 grep -v "XX_"                      | # IGNORE XXCLUDED LAYERS
                 cut -d "\"" -f 2`
+  else
+       for INPUT in `grep -n 'charsallowed="' ${SVG%%.*}.tmp | #
+                     cut -d ":" -f 1`
+        do 
+           CHARSALLOWED=`sed -n "${INPUT}p" ${SVG%%.*}.tmp | #
+                         sed 's/charsallowed=/\n&/g' | #
+                         grep -n '^charsallowed="' | cut -d "\"" -f 2`
+           if [ "$CHARSALLOWED" -ge "$CHARSNEEDED" ]; then
+                 LAYERNAME=`sed -n "${INPUT}p" ${SVG%%.*}.tmp | #
+                            sed 's/scape:label/\nlabel/g' | #
+                            grep -v "XX_" | #
+                            grep -n '^label' | cut -d "\"" -f 2`
+                 LAYERS2INPUT="$LAYERS2INPUT $LAYERNAME"
+           fi
+       done
+  fi
 
 # --------------------------------------------------------------------------- #
 # GENERATE CODE FOR FOR-LOOP TO EVALUATE COMBINATIONS
@@ -147,8 +165,8 @@
       INJECT=`echo $NOISE            | # ASSUMED UTF-8
               sed "s/&/\\\\\&amp;/g" | #
               sed "s/\"/\\\\\"/g"`     #
-       LN=`grep -n $FOO $SVGOUT | cut -d ":" -f 1 | #
-           shuf -n 1 --random-source=<(mkseed $NAME)`
+       LN=`grep -n $FOO $SVGOUT | cut -d ":" -f 1 | tail -n 1`
+
       sed -i "${LN}s/$FOO/$INJECT/g" $SVGOUT
       sed -i "s/$FOO//g" $SVGOUT
 
