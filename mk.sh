@@ -32,9 +32,9 @@
 # CHECK INPUT
 # --------------------------------------------------------------------------- #
   if [ `echo $* | wc -c` -le 1 ]; then 
-        INSERTTXT="NO"
+        INPUTTXT="NO"
         NOISE="";CHARSNEEDED="0"
-   else INSERTTXT="YES";NOISE=`echo $* | sed 's/^[ ]*//g'`
+   else INPUTTXT="YES";NOISE=`echo $* | sed 's/^[ ]*//g'`
         CHARSNEEDED=`echo $NOISE | wc -c`; fi
 
 # =========================================================================== #
@@ -65,7 +65,7 @@
                 grep -v "XX_"                      | # IGNORE XXCLUDED LAYERS
                 cut -d "\"" -f 2`
 
-  if [ "$INSERTTXT" == "YES" ];then 
+  if [ "$INPUTTXT" == "YES" ];then 
         for INPUT in `grep -n 'charsallowed="' ${SVG%%.*}.tmp | #
                       cut -d ":" -f 1`
          do 
