@@ -5,7 +5,7 @@
 
 
   TMP=XXTMP
-  MENTIONDUMP=dump.mentions
+  MENTIONDUMP=$OUTPUTDIR/dump.mentions
 
 # --------------------------------------------------------------------------- #
 # FIRST THINGS FIRST
@@ -19,14 +19,15 @@
 # --------------------------------------------------------------------------- #
   MINUTE=`date +%M | sed 's/^[0-9]//'`
 
-  if [ $MINUTE != 5 ];then
+  if [ "$MINUTE" != 5 ] && [ "$MINUTE" != 0 ];then
+ #if [ "$MINUTE" == 99 ];then
 # --------------------------------------------------------------------------- #
 #  CHECK/COLLECT IF THERE'S ANTYTHING TO REPLY TO
 # --------------------------------------------------------------------------- #
 
   # GET MENTIONS INFO FROM TWITTER (+APPEND TO DUMP)
   # ----------------------------------------------------------------------- # 
-  # getMentions >> $MENTIONDUMP
+    getMentions >> $MENTIONDUMP
 
   # --------------------------------------------------------------------- #
   # FIND IDs MARKED AS DONE
@@ -61,19 +62,21 @@
          MENTION=`sed '/./{H;d;};x;s/\n/={NL}=/g' $MENTIONDUMP | #
                   grep -- "$IDUNDONE"`
 
-         MESSAGE=`echo $MENTION         | #
-                  sed 's/={NL}=/\n/g'   | #
-                  grep -v "^-.*\{5,\}$" | #
-                  sed '/^[ ]*$/d'       | #
-                  head -n 1             | #
-                  sed 's/\\\u200b//g'   | #
-                  recode h0..utf-8`       #
+         MESSAGE=`echo $MENTION             | #
+                  sed 's/={NL}=/\n/g'       | #
+                  grep -v "^-.*\{5,\}$"     | #
+                  sed '/^[ ]*$/d'           | #
+                  head -n 1                 | #
+                  sed 's/\\\\\\u.\{4\}/-/g' | # RM (EMOJI) CRAP
+                  recode h0..utf-8`           #
 
          MESSAGE=`echo -e "$MESSAGE "   | # START WITH TEXT
-                  sed 's/^[ \t]*//'     | # REMOVE LEADING BLANKS
-                  sed 's/[ \t]$//'      | # REMOVE CLOSING BLANKS
                   sed 's/^@makebotbot[^a-zA-Z0-9]//'  | #
-                  sed 's/^.*@makebotbot://g'`
+                  sed 's/^.*@makebotbot://g' | #
+                  sed 's/^[ \t]*//'     | # REMOVE LEADING BLANKS
+                  sed 's/[ \t]$//'`       # REMOVE CLOSING BLANKS
+
+
 
              MID=`echo $MENTION | #
                   sed 's/={NL}=/\n/g' | #
@@ -91,7 +94,8 @@
          OUTPUT="$OUTPUT "`./mk.sh "$MESSAGE" | cut -d ":" -f 2`
          THISTWEET=`echo $OUTPUT | sed 's/ /\n/g' | #
                     tail -n 1 | sed 's/\.svg$//'`-TWEET.txt
-         THISANCHOR=`basename $THISTWEET | sed 's/-TWEET\.txt$//'`
+         THISANCHOR=`basename $THISTWEET | #
+                     sed 's/-TWEET\.txt$//' | cut -c 1-8`
          THISMESSAGE="@$MFROM →  $BASEURL/#$THISANCHOR -r=$MID"
          echo "$THISMESSAGE" > $THISTWEET
 
@@ -110,8 +114,9 @@
 
      THISTWEET=`echo $OUTPUT | sed 's/ /\n/g' | #
                 tail -n 1 | sed 's/\.svg$//'`-TWEET.txt
-     THISANCHOR=`basename $THISTWEET | sed 's/-TWEET\.txt$//'`
-     THISMESSAGE="@$MFROM →  $BASEURL/#$THISANCHOR"
+     THISANCHOR=`basename $THISTWEET | #
+                 sed 's/-TWEET\.txt$//' | cut -c 1-8`
+     THISMESSAGE="$BASEURL/#$THISANCHOR"
      echo "$THISMESSAGE" > $THISTWEET
 
   fi
@@ -161,9 +166,12 @@
         # ================================================================ #
         # PREPARE UPLOAD FOR FREEZE
         # ================================================================ #
-                  IMG=$TWITTERUPLOAD
-               ANCHOR=`basename $IMG | cut -d "." -f 1 | cut -c 1-5`
-               IMGSRC=`basename ${O%%.*}.png`
+                  IMG=$OUTPUTDIR/`basename ${O%%.*}.png`
+                  convert ${TMP}.png $IMG
+
+               ANCHOR=`basename $IMG | cut -d "." -f 1 | cut -c 1-8`
+               IMGSRC=`basename $IMG`
+                 HREF="XX"`basename $IMG | cut -d "." -f 1`
               HREFSVG=`basename $O`
               HREFPDF=""
           HTMLELEMENT=`echo "<table class=\"floin\" id=\"$ANCHOR\">
@@ -183,7 +191,6 @@
                echo "SOMETHING WENT WRONG"
                echo "$OUTPUT"
       fi
-
   done
 
 # --------------------------------------------------------------------------- #
@@ -205,35 +212,39 @@
     sed 's/={NL}=/\n\n/g' > $HTMLNEW
 
   # ----------------------------------------------------------------------- #
-  # UPLOAD FILES ONLY
+  # UPLOAD FILES ONLY (+ TEMPORARY INDEX)
   # ----------------------------------------------------------------------- #
-  # ftpUpload $FTPCOLLECT $HTMLNEW
+    ftpUpload $FTPCOLLECT $HTMLNEW
 
 # --------------------------------------------------------------------------- #
 # TWEET
 # --------------------------------------------------------------------------- #
-  for T in `ls $OUTPUTDIR/*-TWEET.txt`
+  for T in `ls $OUTPUTDIR/*.* | grep "TWEET.txt$"`
    do
       if [ -f $T ] && 
          [ -f ${T%%.*}.png ]
       then
-           echo `cat $T` ${T%%.*}.png
-          #tweet `cat $T` ${T%%.*}.png
-           rm $T # ${T%%.*}.png
+           tweet `cat $T` ${T%%.*}.png
+           BASEURL="https://twitter.com/makebotbot/status"
+           FOOHREF="XX"`basename $T | cut -d "." -f 1 | #
+                        sed 's/-TWEET$//'`
+           NEWHREF="$BASEURL/$STATUSID"
+           sed -i "s,$FOOHREF,$NEWHREF,g" $HTMLNEW
+           rm $T ${T%%.*}.png
       else
            echo "SOMETHING WAS WRONG($T); DO NOT TWEET"
       fi
   done
 
   # ----------------------------------------------------------------------- #
-  # UPLOAD INDEX
+  # UPLOAD UPDATED INDEX (WITH STATUS IDs)
   # ----------------------------------------------------------------------- #
-  # ftpUpload $HTMLNEW
+    ftpUpload $HTMLNEW
 
 # --------------------------------------------------------------------------- #
 # CLEAN UP / RM TEMPORARY FILES
 # --------------------------------------------------------------------------- #
- #rm $HTMLNEW
+  rm $HTMLNEW ${TMP}.png ${TMP}.svg ${TMP}.REMOTE.html
+
 
 exit 0;
-
