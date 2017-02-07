@@ -160,7 +160,7 @@
       echo "WRITING: $SVGOUT"
 
       grep -n 'label="XX_DEKO' ${SVG%%.*}.tmp   | #
-      shuf -n 2 --random-source=<(mkseed $NAME) | # SELECT (NOT SO) RANDOM
+     #shuf -n 2 --random-source=<(mkseed $NAME) | # SELECT (NOT SO) RANDOM
       sed 's/display:inline/display:none/g'       > ${SVGOUT}.tmp
 
       head -n 1 ${SVG%%.*}.tmp                           >  $SVGOUT

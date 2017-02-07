@@ -12,6 +12,7 @@
 # --------------------------------------------------------------------------- #
   source lib/sh/twitter.functions
   source lib/sh/ftp.functions
+  source lib/sh/shuffle.functions
  #source lib/sh/network.functions # TODO!
 
 # --------------------------------------------------------------------------- #
@@ -128,21 +129,28 @@
    do
       if [ -f $O ]; then
 
+          NAME=`basename $O | cut -d "." -f 1`
         # ================================================================ #
         # MAKE IMAGE FOR TWITTER
         # ================================================================ #
           TWITTERUPLOAD=${O%%.*}-TWEET.png 
-          C1="#ff0000";C2="#ff0000"
+
+         #C1="#ff0000";C2="#ff0000";BG="#ffffff"
+          C1="#1b17cf";C2="#1b17cf";BG="#ffffff"
           sed 's/#[fF]\{6\}/XxXxXx/g' $O | #
           sed 's/stroke-width:[0-9.]*/stroke-width:2.5/g' | #
           sed "s/fill:#[0-9a-fA-F]\{6\}/fill:$C1/g" | #
           sed "s/stroke:#[0-9a-fA-F]\{6\}/stroke:$C2/g" | #
-          sed "s/XxXxXx/#ffffff/g" | #
-          sed '/show="twitter"/s/display:none/display:inline/g' | #
+          sed "s/XxXxXx/$BG/g" | #
           tee > ${TMP}.svg
+
+          for SHOWTHIS in `grep -n "show=\"twitter" ${TMP}.svg | #
+          cut -d ":" -f 1 | shuf -n 2 --random-source=<(mkseed $NAME)`;do
+          sed -i "${SHOWTHIS}s/splay:none/splay:inline/g" ${TMP}.svg;done
           inkscape --export-background-opacity=0 \
                    --export-png=${TMP}.png ${TMP}.svg
-          convert ${TMP}.png -background "#FFFFFF" -flatten $TWITTERUPLOAD
+          convert ${TMP}.png -background "$BG" -flatten $TWITTERUPLOAD
+
         # ---------------------------------------------------------------- #
         # FORCE PNG ON TWITTER
         # ---------------------------------------------------------------- #
@@ -166,26 +174,46 @@
         # ================================================================ #
         # PREPARE UPLOAD FOR FREEZE
         # ================================================================ #
-                  IMG=$OUTPUTDIR/`basename ${O%%.*}.png`
-                  convert ${TMP}.png $IMG
+         #C1="#cf1717";C2="#cf1717";BG="#ffffff"
+         #C1="#17cf17";C2="#17cf17";BG="#ffffff"
+          C1="#1b17cf";C2="#1b17cf";BG="#ffffff"
+          sed 's/#[fF]\{6\}/XxXxXx/g' $O | #
+          sed 's/stroke-width:[0-9.]*/stroke-width:2.5/g' | #
+          sed "s/fill:#[0-9a-fA-F]\{6\}/fill:$C1/g" | #
+          sed "s/stroke:#[0-9a-fA-F]\{6\}/stroke:$C2/g" | #
+          sed "s/XxXxXx/$BG/g" | #
+          tee > ${TMP}.svg
 
-               ANCHOR=`basename $IMG | cut -d "." -f 1 | cut -c 1-8`
+         #for SHOWTHIS in `grep -n "show=\"twitter" ${TMP}.svg | #
+         #cut -d ":" -f 1 | shuf -n 2 --random-source=<(mkseed $NAME)`;do
+         #sed -i "${SHOWTHIS}s/splay:none/splay:inline/g" ${TMP}.svg;done
+
+                  IMG=$OUTPUTDIR/${NAME}.png
+                  PDF=$OUTPUTDIR/${NAME}.pdf
+          inkscape --export-background-opacity=0 \
+                   --export-png=${TMP}.png ${TMP}.svg
+               convert ${TMP}.png $IMG
+          inkscape --export-text-to-path \
+                   --export-pdf=${PDF} $O
+
+               ANCHOR=`echo $NAME | cut -c 1-8`
                IMGSRC=`basename $IMG`
-                 HREF="XX"`basename $IMG | cut -d "." -f 1`
-              HREFSVG=`basename $O`
-              HREFPDF=""
+                 HREF="XX$NAME"
+              HREFSVG="${NAME}.svg"
+              HREFPDF="${NAME}.pdf"
           HTMLELEMENT=`echo "<table class=\"floin\" id=\"$ANCHOR\">
                        <tr><td colspan=\"2\"
                                class=\"px\">
                        <a href=\"$HREF\">
                        <img src=\"$IMGSRC\"/></a>
                        </td></tr><tr><td class=\"t l\">
-                       .<a href=\"$HREFSVG\">svg</a> (EDITABLE)
+                       Download:
                        </td><td class="t r">
-                       .<a href=\"$HREFPDF\">pdf</a> (FLATTENED)
+                       <a href=\"$HREFSVG\">SVG</a>
+                       / <a href=\"$HREFPDF\">PDF</a>
                        </td></tr></table>"`
           HTMLADD="${HTMLADD}={NL}=${HTMLELEMENT}"
-          FTPCOLLECT="$FTPCOLLECT $O $IMG"
+          FTPCOLLECT="$FTPCOLLECT $O $PDF $IMG"
 
          else
                echo "SOMETHING WENT WRONG"
@@ -244,7 +272,11 @@
 # --------------------------------------------------------------------------- #
 # CLEAN UP / RM TEMPORARY FILES
 # --------------------------------------------------------------------------- #
-  rm $HTMLNEW ${TMP}.png ${TMP}.svg ${TMP}.REMOTE.html
+  if [ -f $HTMLNEW           ];then rm $HTMLNEW                           ;fi
+  if [ -f ${TMP}.png         ];then rm ${TMP}.png                         ;fi
+  if [ -f ${TMP}.svg         ];then rm ${TMP}.svg                         ;fi
+  if [ -f ${TMP}.REMOTE.html ];then rm ${TMP}.REMOTE.html                 ;fi
+
 
 
 exit 0;
