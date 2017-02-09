@@ -1,27 +1,43 @@
 #!/bin/bash
 
-  OUTPUTDIR="_"
-  BASEURL="http://freeze.sh/_/2017/socialbots/o"
-
-
-  TMP=XXTMP
-  MENTIONDUMP=$OUTPUTDIR/dump.mentions
-
 # --------------------------------------------------------------------------- #
-# FIRST THINGS FIRST
+# CONFIGURE.
+# --------------------------------------------------------------------------- #
+  OUTPUTDIR="_";BASEURL="http://freeze.sh/_/2017/socialbots/o"
+  MENTIONDUMP=$OUTPUTDIR/dump.mentions
+  TMP=XXTMP # PATTERN TO IDENTIFY TMP FILES
+# --------------------------------------------------------------------------- #
+# INCLUDE.
 # --------------------------------------------------------------------------- #
   source lib/sh/twitter.functions
   source lib/sh/ftp.functions
   source lib/sh/shuffle.functions
  #source lib/sh/network.functions # TODO!
+# --------------------------------------------------------------------------- #
+# CONFIGURE YOURSELF
+# --------------------------------------------------------------------------- #
+  PROJEKTROOT=`readlink -f $0   | # DISPLAY ABSOLUTE PATH
+               rev              | # REVERT (LAST BECOMES FIRST)
+               cut -d "/" -f 2- | # REMOVE FIRST FIELD
+               rev`               # REVERT BACK AGAIN
+  cd $PROJEKTROOT
+
+# --------------------------------------------------------------------------- #
+# FIRST THINGS FIRST
+# --------------------------------------------------------------------------- #
+  if [ `echo $* | wc -c` -le 1 ]; then
+       HASINPUT="NO"  ; NOISE=""
+  else HASINPUT="YES" ; NOISE=`echo $* | sed 's/^[ ]*//'`; fi
+
 
 # --------------------------------------------------------------------------- #
 # CHECK TIME
 # --------------------------------------------------------------------------- #
   MINUTE=`date +%M | sed 's/^[0-9]//'`
 
-  if [ "$MINUTE" != 5 ] && [ "$MINUTE" != 0 ];then
- #if [ "$MINUTE" == 99 ];then
+  if [ "$HASINPUT" != "YES" ] &&
+     [ "$MINUTE"   != "0"   ] && [ "$MINUTE"   != "5" ]; then
+
 # --------------------------------------------------------------------------- #
 #  CHECK/COLLECT IF THERE'S ANTYTHING TO REPLY TO
 # --------------------------------------------------------------------------- #
@@ -70,14 +86,11 @@
                   head -n 1                 | #
                   sed 's/\\\\\\u.\{4\}/-/g' | # RM (EMOJI) CRAP
                   recode h0..utf-8`           #
-
          MESSAGE=`echo -e "$MESSAGE "   | # START WITH TEXT
                   sed 's/^@makebotbot[^a-zA-Z0-9]//'  | #
                   sed 's/^.*@makebotbot://g' | #
                   sed 's/^[ \t]*//'     | # REMOVE LEADING BLANKS
                   sed 's/[ \t]$//'`       # REMOVE CLOSING BLANKS
-
-
 
              MID=`echo $MENTION | #
                   sed 's/={NL}=/\n/g' | #
@@ -87,10 +100,6 @@
                   sed 's/={NL}=/\n/g' | #
                   grep -v "^-.*\{5,\}$" |#
                   sed '/^[ ]*$/d' | head -n 3 | tail -n 1`
-
-        #NOISE=`fortune -n 120 -s | tr -s ' ' | #
-        #       sed 's/\\\u200b//g' | #
-        #       recode h0..utf-8`; MESSAGE="$NOISE"
 
          OUTPUT="$OUTPUT "`./mk.sh "$MESSAGE" | cut -d ":" -f 2`
          THISTWEET=`echo $OUTPUT | sed 's/ /\n/g' | #
@@ -111,8 +120,7 @@
 #  OTHERWISE: BE SELF-RELIANT
 # --------------------------------------------------------------------------- #
 
-     OUTPUT=`./mk.sh | cut -d ":" -f 2`
-
+     OUTPUT=`./mk.sh "$NOISE" | cut -d ":" -f 2`
      THISTWEET=`echo $OUTPUT | sed 's/ /\n/g' | #
                 tail -n 1 | sed 's/\.svg$//'`-TWEET.txt
      THISANCHOR=`basename $THISTWEET | #
@@ -147,8 +155,9 @@
           for SHOWTHIS in `grep -n "show=\"twitter" ${TMP}.svg | #
           cut -d ":" -f 1 | shuf -n 2 --random-source=<(mkseed $NAME)`;do
           sed -i "${SHOWTHIS}s/splay:none/splay:inline/g" ${TMP}.svg;done
-          inkscape --export-background-opacity=0 \
-                   --export-png=${TMP}.png ${TMP}.svg
+          inkscape --export-png=${TMP}.png      \
+                   --export-background-opacity=0 \
+                   ${TMP}.svg > /dev/null 2>&1
           convert ${TMP}.png -background "$BG" -flatten $TWITTERUPLOAD
 
         # ---------------------------------------------------------------- #
@@ -184,17 +193,15 @@
           sed "s/XxXxXx/$BG/g" | #
           tee > ${TMP}.svg
 
-         #for SHOWTHIS in `grep -n "show=\"twitter" ${TMP}.svg | #
-         #cut -d ":" -f 1 | shuf -n 2 --random-source=<(mkseed $NAME)`;do
-         #sed -i "${SHOWTHIS}s/splay:none/splay:inline/g" ${TMP}.svg;done
-
                   IMG=$OUTPUTDIR/${NAME}.png
                   PDF=$OUTPUTDIR/${NAME}.pdf
-          inkscape --export-background-opacity=0 \
-                   --export-png=${TMP}.png ${TMP}.svg
+          inkscape --export-png=${TMP}.png      \
+                   --export-background-opacity=0 \
+                   ${TMP}.svg > /dev/null 2>&1
                convert ${TMP}.png $IMG
-          inkscape --export-text-to-path \
-                   --export-pdf=${PDF} $O
+          inkscape --export-pdf=${PDF}  \
+                   --export-text-to-path \
+                   $O > /dev/null 2>&1
 
                ANCHOR=`echo $NAME | cut -c 1-8`
                IMGSRC=`basename $IMG`
