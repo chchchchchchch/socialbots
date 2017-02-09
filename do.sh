@@ -3,7 +3,7 @@
 # --------------------------------------------------------------------------- #
 # CONFIGURE.
 # --------------------------------------------------------------------------- #
-  OUTPUTDIR="_";BASEURL="http://freeze.sh/_/2017/socialbots/o"
+  OUTPUTDIR="_";BASEURL="http://freeze.sh" # USED FOR REDIRECT
   MENTIONDUMP=$OUTPUTDIR/dump.mentions
   TMP=XXTMP # PATTERN TO IDENTIFY TMP FILES
 # --------------------------------------------------------------------------- #
@@ -106,9 +106,10 @@
          OUTPUT="$OUTPUT "`./mk.sh "$MESSAGE" | cut -d ":" -f 2`
          THISTWEET=`echo $OUTPUT | sed 's/ /\n/g' | #
                     tail -n 1 | sed 's/\.svg$//'`-TWEET.txt
-         THISANCHOR=`basename $THISTWEET | #
-                     sed 's/-TWEET\.txt$//' | cut -c 1-8`
-         THISMESSAGE="@$MFROM →  $BASEURL/#$THISANCHOR -r=$MID"
+         THISANCHOR=`basename $THISTWEET    | #
+                     sed 's/-TWEET\.txt$//' | # 
+                     cut -c 1-8 | sed 's/^B/B0T/'`
+         THISMESSAGE="@$MFROM →  $BASEURL/$THISANCHOR -r=$MID"
          echo "$THISMESSAGE" > $THISTWEET
 
        # -------------------------------------------------------------- #
@@ -125,9 +126,10 @@
      OUTPUT=`./mk.sh "$NOISE" | cut -d ":" -f 2`
      THISTWEET=`echo $OUTPUT | sed 's/ /\n/g' | #
                 tail -n 1 | sed 's/\.svg$//'`-TWEET.txt
-     THISANCHOR=`basename $THISTWEET | #
-                 sed 's/-TWEET\.txt$//' | cut -c 1-8`
-     THISMESSAGE="$BASEURL/#$THISANCHOR"
+     THISANCHOR=`basename $THISTWEET    | #
+                 sed 's/-TWEET\.txt$//' | #
+                 cut -c 1-8 | sed 's/^B/B0T/'`
+     THISMESSAGE="$BASEURL/$THISANCHOR"
      echo "$THISMESSAGE" > $THISTWEET
 
   fi
