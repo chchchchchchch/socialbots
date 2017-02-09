@@ -21,14 +21,16 @@
                cut -d "/" -f 2- | # REMOVE FIRST FIELD
                rev`               # REVERT BACK AGAIN
   cd $PROJEKTROOT
-
+# --------------------------------------------------------------------------- #
+# FOR THE LOG
+# --------------------------------------------------------------------------- #
+  echo -e "--------------------------\nSTART: "`date "+%d.%m.%Y %H:%M:%S"`
 # --------------------------------------------------------------------------- #
 # FIRST THINGS FIRST
 # --------------------------------------------------------------------------- #
   if [ `echo $* | wc -c` -le 1 ]; then
        HASINPUT="NO"  ; NOISE=""
   else HASINPUT="YES" ; NOISE=`echo $* | sed 's/^[ ]*//'`; fi
-
 
 # --------------------------------------------------------------------------- #
 # CHECK TIME
@@ -39,11 +41,11 @@
      [ "$MINUTE"   != "0"   ] && [ "$MINUTE"   != "5" ]; then
 
 # --------------------------------------------------------------------------- #
-#  CHECK/COLLECT IF THERE'S ANTYTHING TO REPLY TO
+  echo "-> CHECK MENTIONS" #  CHECK/COLLECT IF THERE'S ANTYTHING TO REPLY TO  #
 # --------------------------------------------------------------------------- #
 
   # GET MENTIONS INFO FROM TWITTER (+APPEND TO DUMP)
-  # ----------------------------------------------------------------------- # 
+  # --------------------------------------------------------------------- # 
     getMentions >> $MENTIONDUMP
 
   # --------------------------------------------------------------------- #
@@ -114,7 +116,7 @@
        # -------------------------------------------------------------- #
          sed -i "s/^\(-\)\($IDORIGINAL\)/-XX\2/" $MENTIONDUMP
     done
-
+         if [ -f ${TMP}.log ];then cat ${TMP}.log; rm ${TMP}.log ;fi
   else
 # --------------------------------------------------------------------------- #
 #  OTHERWISE: BE SELF-RELIANT
@@ -259,15 +261,25 @@
       if [ -f $T ] && 
          [ -f ${T%%.*}.png ]
       then
+           echo ""; WHEN=`date "+%d.%m.%Y %H:%M:%S"`
+           echo "PROCESSING: $NAME (${WHEN})"
+         # ----------------------------------------------------------- #
            tweet `cat $T` ${T%%.*}.png
+         # ----------------------------------------------------------- #
            BASEURL="https://twitter.com/makebotbot/status"
-           FOOHREF="XX"`basename $T | cut -d "." -f 1 | #
-                        sed 's/-TWEET$//'`
+           NAME=`basename $T | cut -d "." -f 1 | sed 's/-TWEET$//'`
+           FOOHREF="XX${NAME}"
            NEWHREF="$BASEURL/$STATUSID"
            sed -i "s,$FOOHREF,$NEWHREF,g" $HTMLNEW
            rm $T ${T%%.*}.png
+         # ----------------------------------------------------------- #
+         # FOR THE LOG
+         # ----------------------------------------------------------- #
+           echo "-> $NEWHREF"
+           if [ -f ${TMP}.log ];then cat ${TMP}.log; rm ${TMP}.log ;fi
+         # ----------------------------------------------------------- #
       else
-           echo "SOMETHING WAS WRONG($T); DO NOT TWEET"
+           echo "SOMETHING WENT WRONG($T); DID NOT TWEET"
       fi
   done
 
@@ -284,6 +296,10 @@
   if [ -f ${TMP}.svg         ];then rm ${TMP}.svg                         ;fi
   if [ -f ${TMP}.REMOTE.html ];then rm ${TMP}.REMOTE.html                 ;fi
 
+# --------------------------------------------------------------------------- #
+# FOR THE LOG
+# --------------------------------------------------------------------------- #
+  echo -e "READY: "`date "+%d.%m.%Y %H:%M:%S"`"\n--------------------------\n"
 
 
 exit 0;
