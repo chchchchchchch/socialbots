@@ -1,19 +1,21 @@
 
- # echo "INITIALISE TWURL"
-
-   TWURL=/usr/local/bin/twurl
-
    BASEDIR=`readlink -f $0   | #
             rev              | #
             cut -d "/" -f 2- | #
             rev`
-   ACCOUNT=`find $BASEDIR -name "twitter.account" | #
-            head -n 1`
-   USER=`cat $ACCOUNT  | #
-         grep username | #
-         cut -d ":" -f 2`
 
-   $TWURL set default $USER
+   TWACCOUNT=`find $BASEDIR -name "twitter.account" | head -n 1`
+   TWUSERNAME=`cat $TWACCOUNT | grep "username" | cut -d ":" -f 2`
+
+   function setdefaultuserandtweet() {
+
+      # TODO?: CHECK IF ANOTHER TWURL INSTANCE IS RUNNING
+        /usr/local/bin/twurl set default $TWUSERNAME
+        /usr/local/bin/twurl $*
+
+   }
+
+   TWURL="setdefaultuserandtweet"
 
 # --------------------------------------------------------------------------- #
   function tweet(){
