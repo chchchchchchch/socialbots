@@ -7,16 +7,24 @@
    TWACCOUNT=`find $BASEDIR -name "twitter.account" | head -n 1`
    TWUSERNAME=`cat $TWACCOUNT | grep "username" | cut -d ":" -f 2`
 
+# --------------------------------------------------------------------------- #
    function setdefaultuserandtweet() {
 
-      # TODO?: CHECK IF ANOTHER TWURL INSTANCE IS RUNNING
-        /usr/local/bin/twurl set default $TWUSERNAME
-        /usr/local/bin/twurl $*
-
+     while [ `ps aux | grep twurl | #
+              grep -v grep | wc -l` -gt 0 ]
+      do 
+            COLLISION=`ps axo command | #
+                       grep twurl | grep -v grep | #
+                       sed ':a;N;$!ba;s/\n/, /g'`
+            WHEN=`date "+%d.%m.%Y %H:%M:%S"`
+            echo "WAITING (${WHEN} -> ${COLLISION})" | tee -a ${TMP}.log
+            sleep 5
+     done
+           /usr/local/bin/twurl set default $TWUSERNAME
+           /usr/local/bin/twurl $*
    }
 
    TWURL="setdefaultuserandtweet"
-
 # --------------------------------------------------------------------------- #
   function tweet(){
   
