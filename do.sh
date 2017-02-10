@@ -106,9 +106,11 @@
          OUTPUT="$OUTPUT "`./mk.sh "$MESSAGE" | cut -d ":" -f 2`
          THISTWEET=`echo $OUTPUT | sed 's/ /\n/g' | #
                     tail -n 1 | sed 's/\.svg$//'`-TWEET.txt
-         THISANCHOR=`basename $THISTWEET    | #
-                     sed 's/-TWEET\.txt$//' | # 
-                     cut -c 1-8 | sed 's/^B/B0T/'`
+         THISANCHOR=`basename $THISTWEET         | #
+                     sed 's/-TWEET\.txt$//'      | # 
+                     cut -c 1-8 | sed 's/^B/bt/' | #
+                     tr [:upper:] [:lower:]`       #
+
          THISMESSAGE="@$MFROM →  $BASEURL/$THISANCHOR -r=$MID"
          echo "$THISMESSAGE" > $THISTWEET
 
@@ -126,9 +128,11 @@
      OUTPUT=`./mk.sh "$NOISE" | cut -d ":" -f 2`
      THISTWEET=`echo $OUTPUT | sed 's/ /\n/g' | #
                 tail -n 1 | sed 's/\.svg$//'`-TWEET.txt
-     THISANCHOR=`basename $THISTWEET    | #
-                 sed 's/-TWEET\.txt$//' | #
-                 cut -c 1-8 | sed 's/^B/B0T/'`
+     THISANCHOR=`basename $THISTWEET         | #
+                 sed 's/-TWEET\.txt$//'      | #
+                 cut -c 1-8 | sed 's/^B/bt/' | #
+                 tr [:upper:] [:lower:]`       #
+
      THISMESSAGE="$BASEURL/$THISANCHOR"
      echo "$THISMESSAGE" > $THISTWEET
 
@@ -207,7 +211,9 @@
                    --export-text-to-path \
                    $O > /dev/null 2>&1
 
-               ANCHOR=`echo $NAME | cut -c 1-8`
+               ANCHOR=`echo $NAME | #
+                       cut -c 1-8 | #
+                       tr [:upper:] [:lower:]`
                IMGSRC=`basename $IMG`
                  HREF="XX$NAME"
               HREFSVG="${NAME}.svg"
