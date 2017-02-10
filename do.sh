@@ -225,9 +225,8 @@
                        <a href=\"$HREF\" target=\"_blank\">
                        <img src=\"$IMGSRC\"/></a>
                        </td></tr><tr><td class=\"t l\">
-                       Download:
-                       </td><td class="t r">
                        <a href=\"$HREFSVG\">SVG</a>
+                       </td><td class="t r">
                        <a href=\"$HREFPDF\">PDF</a>
                        </td></tr></table>"`
           HTMLADD="${HTMLADD}={NL}=${HTMLELEMENT}"
