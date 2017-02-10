@@ -221,7 +221,7 @@
           HTMLELEMENT=`echo "<table class=\"floin\" id=\"$ANCHOR\">
                        <tr><td colspan=\"2\"
                                class=\"px\">
-                       <a href=\"$HREF\">
+                       <a href=\"$HREF\" target=\"_blank\">
                        <img src=\"$IMGSRC\"/></a>
                        </td></tr><tr><td class=\"t l\">
                        Download:
@@ -254,7 +254,7 @@
     HTMLADD=`echo $HTMLADD | tr -s ' ' | #
              sed 's/>[ ]*</></g'`
     sed "s,${ADDHERE},${HTMLADD}\n\n&,g" $HTMLTMP | #
-    sed 's/={NL}=/\n\n/g' > $HTMLNEW
+    sed 's/={NL}=/\n/g' > $HTMLNEW
 
   # ----------------------------------------------------------------------- #
   # UPLOAD FILES ONLY (+ TEMPORARY INDEX)
