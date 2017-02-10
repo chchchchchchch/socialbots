@@ -228,7 +228,7 @@
                        Download:
                        </td><td class="t r">
                        <a href=\"$HREFSVG\">SVG</a>
-                       / <a href=\"$HREFPDF\">PDF</a>
+                       <a href=\"$HREFPDF\">PDF</a>
                        </td></tr></table>"`
           HTMLADD="${HTMLADD}={NL}=${HTMLELEMENT}"
           FTPCOLLECT="$FTPCOLLECT $O $PDF $IMG"
