@@ -59,12 +59,11 @@
 
 
   ------------------------------------------------------------
-  F O N T S  U S E D
+  F O N T S   U S E D
   ------------------------------------------------------------
 
   Space Mono: Made by Colophon Foundry. Paid by Google.
   ----------  http://github.com/googlefonts/spacemono
-
   Whois Mono: Made by Raphaël Bastide (raphaelbastide.com)
   ----------  http://fontain.org/whois-mono
 
@@ -74,14 +73,14 @@
 
  # OUTPUT RANDOM TEXT
    ------------------
-  NOISE=`fortune -n 120 -s | tr -s ' '`; echo $NOISE 
+   NOISE=`fortune -n 120 -s | tr -s ' '`; echo $NOISE 
 
  # LIST FONTS USED IN $SVG
    -----------------------
-  grep "style" $SVG | sed 's/font-family/\n&/g' | \
-  sed 's/;/\n/' | grep "^font-family" | sort -u
+   grep "style" $SVG | sed 's/font-family/\n&/g' | \
+   sed 's/;/\n/' | grep "^font-family" | sort -u
 
  # TWITTER POLICY (BEWARE!)
    -------------- 
-  https://dev.twitter.com/overview/terms/policy
+   https://dev.twitter.com/overview/terms/policy
 
