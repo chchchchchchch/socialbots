@@ -7,13 +7,6 @@
   MENTIONDUMP=$OUTPUTDIR/dump.mentions
   TMP=XXTMP # PATTERN TO IDENTIFY TMP FILES
 # --------------------------------------------------------------------------- #
-# INCLUDE.
-# --------------------------------------------------------------------------- #
-  source lib/sh/twitter.functions
-  source lib/sh/ftp.functions
-  source lib/sh/shuffle.functions
- #source lib/sh/network.functions # TODO!
-# --------------------------------------------------------------------------- #
 # CONFIGURE YOURSELF
 # --------------------------------------------------------------------------- #
   PROJEKTROOT=`readlink -f $0   | # DISPLAY ABSOLUTE PATH
@@ -21,6 +14,14 @@
                cut -d "/" -f 2- | # REMOVE FIRST FIELD
                rev`               # REVERT BACK AGAIN
   cd $PROJEKTROOT
+# --------------------------------------------------------------------------- #
+# INCLUDE.
+# --------------------------------------------------------------------------- #
+  source lib/sh/twitter.functions
+  source lib/sh/ftp.functions
+  source lib/sh/shuffle.functions
+ #source lib/sh/network.functions # TODO!
+
 # --------------------------------------------------------------------------- #
 # FOR THE LOG
 # --------------------------------------------------------------------------- #
