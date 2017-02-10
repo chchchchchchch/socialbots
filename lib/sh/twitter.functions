@@ -21,10 +21,12 @@
             sleep 5
      done
            /usr/local/bin/twurl set default $TWUSERNAME
-           /usr/local/bin/twurl $*
+           EVALTHIS="/usr/local/bin/twurl $*"
+           eval $EVALTHIS
    }
 
    TWURL="setdefaultuserandtweet"
+
 # --------------------------------------------------------------------------- #
   function tweet(){
   
@@ -74,11 +76,7 @@
           OPTIONS="status=${TEXT}"
     fi
 
-  # if [ `echo $OPTIONSPLUS | wc -c` -gt 1 ]; then
-  #       OPTIONS="$OPTIONS$OPTIONSPLUS"
-  # fi
-
-    TWEET=`$TWURL "$UPDATE" -r "$OPTIONS${ISREPLY}"`
+    TWEET=`$TWURL \"$UPDATE\" -r \"$OPTIONS${ISREPLY}\"`
 
     if [ `echo $TWEET | grep '"errors":' | wc -l` -gt 0 ]
      then
