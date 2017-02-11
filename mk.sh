@@ -34,7 +34,7 @@
   if [ `echo $* | wc -c` -le 1 ]; then 
         INPUTTXT="NO"
         NOISE="";CHARSNEEDED="0"
-   else INPUTTXT="YES";NOISE=`echo $* | sed 's/^[ ]*//g'`
+   else INPUTTXT="YES";NOISE=`echo "$*" | sed 's/^[ ]*//g'`
         CHARSNEEDED=`echo $NOISE | wc -c`; fi
 
 # =========================================================================== #
