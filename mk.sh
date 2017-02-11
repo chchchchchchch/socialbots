@@ -171,7 +171,7 @@
       echo "</svg>"                                      >> $SVGOUT
       rm ${SVGOUT}.tmp
 
-      INJECT=`echo $NOISE            | # ASSUMED UTF-8
+      INJECT=`echo "$NOISE"          | # ASSUMED UTF-8
               sed "s/&/\\\\\&amp;/g" | #
               sed "s/\"/\\\\\"/g"`     #
        LN=`grep -n $FOO $SVGOUT | cut -d ":" -f 1 | tail -n 1`
