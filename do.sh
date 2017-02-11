@@ -252,8 +252,8 @@
          -O $HTMLTMP             \
          $HTMLREMOTE > /dev/null 2>&1
     HTMLADD=`echo $HTMLADD | tr -s ' ' | #
-             sed 's/>[ ]*</></g'`
-    sed "s,${ADDHERE},${HTMLADD}\n&,g" $HTMLTMP | #
+             sed 's/^={NL}=//' | sed 's/>[ ]*</></g'`
+    sed "s,${ADDHERE},${HTMLADD}\n\n&,g" $HTMLTMP | #
     sed 's/={NL}=/\n/g' > $HTMLNEW
 
   # ----------------------------------------------------------------------- #
