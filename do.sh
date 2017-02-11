@@ -297,14 +297,12 @@
   # ----------------------------------------------------------------------- #
   # UPLOAD UPDATED INDEX (WITH STATUS IDs)
   # ----------------------------------------------------------------------- #
-    ftpUpload $HTMLNEW
-
+    ftpUpload $HTMLNEW; if [ -f $HTMLNEW ];then rm $HTMLNEW ;fi
   fi
 
 # --------------------------------------------------------------------------- #
 # CLEAN UP / RM TEMPORARY FILES
 # --------------------------------------------------------------------------- #
-  if [ -f $HTMLNEW           ];then rm $HTMLNEW                           ;fi
   if [ -f ${TMP}.png         ];then rm ${TMP}.png                         ;fi
   if [ -f ${TMP}.svg         ];then rm ${TMP}.svg                         ;fi
   if [ -f ${TMP}.REMOTE.html ];then rm ${TMP}.REMOTE.html                 ;fi
