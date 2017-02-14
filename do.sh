@@ -75,10 +75,6 @@
          IDORIGINAL=`echo $IDUNDONE | # DISPLAY ID
                   sed 's/[^0-9]*//g'` # RM ALL BUT NUMBERS
 
-        #sed '/./{H;d;};x;s/\n/={NL}=/g' $MENTIONDUMP | #
-        #grep -- "$IDUNDONE" | #
-        #sed '1s/={NL}=//;s/={NL}=/\n/g'
-
          MENTION=`sed '/./{H;d;};x;s/\n/={NL}=/g' $MENTIONDUMP | #
                   grep -- "$IDUNDONE"`
 
@@ -89,22 +85,24 @@
                   head -n 1                 | #
                   sed 's/\\\\\\u.\{4\}/-/g' | # RM (EMOJI) CRAP
                   recode h0..utf-8`           #
-         MESSAGE=`echo -e "$MESSAGE "   | # START WITH TEXT
-                  sed 's/^@makebotbot[^a-zA-Z0-9]//'  | #
-                  sed 's/^.*@makebotbot://g' | #
-                  sed 's/^[ \t]*//'     | # REMOVE LEADING BLANKS
-                  sed 's/[ \t]$//'`       # REMOVE CLOSING BLANKS
+         MESSAGE=`echo -e "$MESSAGE "                | # START WITH TEXT
+                  sed 's/^@makebotbot[^a-zA-Z0-9]//' | #
+                  sed 's/^.*@makebotbot://g'         | #
+                  sed 's/^[ \t]*//'                  | # REMOVE LEADING BLANKS
+                  sed 's/[ \t]$//'`                    # REMOVE CLOSING BLANKS
 
-             MID=`echo $MENTION | #
-                  sed 's/={NL}=/\n/g' | #
-                  grep -v "^-.*\{5,\}$" |#
-                  sed '/^[ ]*$/d' | head -n 2 | tail -n 1`
-           MFROM=`echo $MENTION | #
-                  sed 's/={NL}=/\n/g' | #
-                  grep -v "^-.*\{5,\}$" |#
-                  sed '/^[ ]*$/d' | head -n 3 | tail -n 1`
+             MID=`echo $MENTION         | #
+                  sed 's/={NL}=/\n/g'   | #
+                  grep -v "^-.*\{5,\}$" | #
+                  sed '/^[ ]*$/d'       | #
+                  head -n 2 | tail -n 1`  #
+           MFROM=`echo $MENTION         | #
+                  sed 's/={NL}=/\n/g'   | #
+                  grep -v "^-.*\{5,\}$" | #
+                  sed '/^[ ]*$/d'       | #
+                  head -n 3 | tail -n 1`  #
+           MFROM=`echo @$MFROM | sed 's/@makebotbot/makebotbot/g'`
 
-        #OUTPUT="$OUTPUT "`./mk.sh "$MESSAGE" | cut -d ":" -f 2`
          ANOTHEROUTPUT=`./mk.sh "$MESSAGE" | cut -d ":" -f 2`
          if [ -f $ANOTHEROUTPUT ]; then
              THISTWEET=`echo "$ANOTHEROUTPUT" | sed 's/ /\n/g' | #
@@ -113,7 +111,7 @@
                          sed 's/-TWEET\.txt$//'      | # 
                          cut -c 1-8 | sed 's/^B/bt/' | #
                          tr [:upper:] [:lower:]`       #
-             THISMESSAGE="@$MFROM →  $BASEURL/$THISANCHOR -r=$MID"
+             THISMESSAGE="$MFROM →  $BASEURL/$THISANCHOR -r=$MID"
              echo "$THISMESSAGE" > $THISTWEET
        # -------------------------------------------------------------- #
        # MARK AS DONE
