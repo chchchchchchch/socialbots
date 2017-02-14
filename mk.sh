@@ -35,7 +35,25 @@
         INPUTTXT="NO"
         NOISE="";CHARSNEEDED="0"
    else INPUTTXT="YES";NOISE=`echo "$*" | sed 's/^[ ]*//g'`
-        CHARSNEEDED=`echo $NOISE | wc -c`; fi
+       # CHECK AND EXPAND URLS
+       # ----------------------------------------------------------------  #
+         NOISE=`echo "$NOISE" | sed 's/\\\\\//\//g'` # DE-ESCAPE
+         for URL in `echo "$NOISE"      | # START WITH MESSAGE
+                     sed 's/ /\n/g'     | # PUT ON SEPARATE LINES
+                     grep "^http.\?://" | # SELECT URLS
+                     sort -u `            # ONE TIME ONLY
+          do XRL=`curl -sIL "$URL"      | # CHECK URL
+                  grep "^Location"      | # SELECT LOCATION
+                  cut -d ":" -f 2-      | # INFO ONLY
+                  sed 's/^[ ]*//'       | # RM LEADING BLANKS
+                  tr -d '\r'`             # RM CARRIAGE RETURN
+             if [ `echo "$XRL" | wc -c` -le 1 ] &&
+                [ `curl -s -o /dev/null -w "%{http_code}" \
+                   -I "$URL"` == '200' ];then XRL="$URL"; fi
+               NOISE=`echo "$NOISE" | sed "s|$URL|$XRL|g"` # COLLECT
+         done; NOISE=`echo "$NOISE" | sed 's/\//\\\\\//g'` # RE-ESCAPE
+       # ----------------------------------------------------------------  #
+        CHARSNEEDED=`echo "$NOISE" | wc -c`; fi
 
 # =========================================================================== #
 # DO IT NOW!
@@ -171,24 +189,6 @@
       echo "</svg>"                                      >> $SVGOUT
       rm ${SVGOUT}.tmp
 
-    # CHECK AND EXPAND URLS
-    # -------------------------------------------------------------------  #
-      NOISE=`echo "$NOISE" | sed 's/\\\\\//\//g'` # DE-ESCAPE
-      for URL in `echo "$NOISE"      | # START WITH MESSAGE
-                  sed 's/ /\n/g'     | # PUT ON SEPARATE LINES
-                  grep "^http.\?://" | # SELECT URLS
-                  sort -u `            # ONE TIME ONLY
-       do XRL=`curl -sIL "$URL"      | # CHECK URL
-               grep "^Location"      | # SELECT LOCATION
-               cut -d ":" -f 2-      | # INFO ONLY
-               sed 's/^[ ]*//'       | # RM LEADING BLANKS
-               tr -d '\r'`             # RM CARRIAGE RETURN
-          if [ `echo "$XRL" | wc -c` -le 1 ] &&
-             [ `curl -s -o /dev/null -w "%{http_code}" \
-                -I "$URL"` == '200' ];then XRL="$URL"; fi
-            NOISE=`echo "$NOISE" | sed "s|$URL|$XRL|g"` # COLLECT
-      done; NOISE=`echo "$NOISE" | sed 's/\//\\\\\//g'` # RE-ESCAPE
-    # -------------------------------------------------------------------  #
       INJECT=`echo "$NOISE"          | # ASSUMED UTF-8
               sed "s/&/\\\\\&amp;/g" | #
               sed "s/\"/\\\\\"/g"`     #
