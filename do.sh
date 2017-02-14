@@ -5,7 +5,7 @@
 # --------------------------------------------------------------------------- #
   OUTPUTDIR="_";BASEURL="http://freeze.sh" # USED FOR REDIRECT
   MENTIONDUMP=$OUTPUTDIR/dump.mentions
-  TMP=XXTMP # PATTERN TO IDENTIFY TMP FILES
+  TMP="XXTMP"`date +%s` # PREFIX TO IDENTIFY TMP FILES
 # --------------------------------------------------------------------------- #
 # CONFIGURE YOURSELF
 # --------------------------------------------------------------------------- #
@@ -29,7 +29,7 @@
 # --------------------------------------------------------------------------- #
 # FIRST THINGS FIRST
 # --------------------------------------------------------------------------- #
-  if [ `echo $* | wc -c` -le 1 ]; then
+  if [ `echo "$*" | wc -c` -le 1 ]; then
        HASINPUT="NO"  ; NOISE=""
   else HASINPUT="YES" ; NOISE=`echo "$*" | sed 's/^[ ]*//'`; fi
 
@@ -104,21 +104,25 @@
                   grep -v "^-.*\{5,\}$" |#
                   sed '/^[ ]*$/d' | head -n 3 | tail -n 1`
 
-         OUTPUT="$OUTPUT "`./mk.sh "$MESSAGE" | cut -d ":" -f 2`
-         THISTWEET=`echo $OUTPUT | sed 's/ /\n/g' | #
-                    tail -n 1 | sed 's/\.svg$//'`-TWEET.txt
-         THISANCHOR=`basename $THISTWEET         | #
-                     sed 's/-TWEET\.txt$//'      | # 
-                     cut -c 1-8 | sed 's/^B/bt/' | #
-                     tr [:upper:] [:lower:]`       #
-
-         THISMESSAGE="@$MFROM →  $BASEURL/$THISANCHOR -r=$MID"
-         echo "$THISMESSAGE" > $THISTWEET
-
+        #OUTPUT="$OUTPUT "`./mk.sh "$MESSAGE" | cut -d ":" -f 2`
+         ANOTHEROUTPUT=`./mk.sh "$MESSAGE" | cut -d ":" -f 2`
+         if [ -f $ANOTHEROUTPUT ]; then
+             THISTWEET=`echo "$ANOTHEROUTPUT" | sed 's/ /\n/g' | #
+                        tail -n 1 | sed 's/\.svg$//'`-TWEET.txt
+             THISANCHOR=`basename "$THISTWEET"       | #
+                         sed 's/-TWEET\.txt$//'      | # 
+                         cut -c 1-8 | sed 's/^B/bt/' | #
+                         tr [:upper:] [:lower:]`       #
+             THISMESSAGE="@$MFROM →  $BASEURL/$THISANCHOR -r=$MID"
+             echo "$THISMESSAGE" > $THISTWEET
        # -------------------------------------------------------------- #
        # MARK AS DONE
        # -------------------------------------------------------------- #
-         sed -i "s/^\(-\)\($IDORIGINAL\)/-XX\2/" $MENTIONDUMP
+             sed -i "s/^\(-\)\($IDORIGINAL\)/-XX\2/" $MENTIONDUMP
+
+             OUTPUT="$OUTPUT $ANOTHEROUTPUT"
+         fi
+
     done
          if [ -f ${TMP}.log ];then cat ${TMP}.log; rm ${TMP}.log ;fi
   else
@@ -127,16 +131,16 @@
 # --------------------------------------------------------------------------- #
 
      OUTPUT=`./mk.sh "$NOISE" | cut -d ":" -f 2`
-     THISTWEET=`echo $OUTPUT | sed 's/ /\n/g' | #
-                tail -n 1 | sed 's/\.svg$//'`-TWEET.txt
-     THISANCHOR=`basename $THISTWEET         | #
-                 sed 's/-TWEET\.txt$//'      | #
-                 cut -c 1-8 | sed 's/^B/bt/' | #
-                 tr [:upper:] [:lower:]`       #
-
-     THISMESSAGE="$BASEURL/$THISANCHOR"
-     echo "$THISMESSAGE" > $THISTWEET
-
+     if [ -f $OUTPUT ]; then
+         THISTWEET=`echo "$OUTPUT" | sed 's/ /\n/g' | #
+                    tail -n 1 | sed 's/\.svg$//'`-TWEET.txt
+         THISANCHOR=`basename "$THISTWEET"       | #
+                     sed 's/-TWEET\.txt$//'      | #
+                     cut -c 1-8 | sed 's/^B/bt/' | #
+                     tr [:upper:] [:lower:]`       #
+         THISMESSAGE="$BASEURL/$THISANCHOR"
+         echo "$THISMESSAGE" > $THISTWEET
+     fi
   fi
 
 # --------------------------------------------------------------------------- #
@@ -168,7 +172,6 @@
                    --export-background-opacity=0 \
                    ${TMP}.svg > /dev/null 2>&1
           convert ${TMP}.png -background "$BG" -flatten $TWITTERUPLOAD
-
         # ---------------------------------------------------------------- #
         # FORCE PNG ON TWITTER
         # ---------------------------------------------------------------- #
@@ -187,7 +190,6 @@
         # CLEAN UP ------------------------------------------------------- #
           rm ${TMP}.1.png ${TMP}.2.png
         # ---------------------------------------------------------------- #
-        # tweet $TWITTERUPLOAD
 
         # ================================================================ #
         # PREPARE UPLOAD FOR FREEZE
@@ -241,16 +243,17 @@
 # --------------------------------------------------------------------------- #
 # UPDATE FREEZE.SH
 # --------------------------------------------------------------------------- #
+  HTMLREMOTE="http://freeze.sh/_/2017/socialbots/o/index.html"
+  HTMLNEW=`basename $HTMLREMOTE`
+
   if [ `ls $OUTPUTDIR/*.* 2> /dev/null | #
         grep "TWEET.txt$" | wc -l` -gt 0 ]; then
 
   # ----------------------------------------------------------------------- #
   # GET/UPDATE HTML
   # ----------------------------------------------------------------------- #
-    ADDHERE="^<!-- = INJECT HERE =* -->$"
     HTMLTMP=${TMP}.REMOTE.html
-    HTMLREMOTE="http://freeze.sh/_/2017/socialbots/o/index.html"
-    HTMLNEW=`basename $HTMLREMOTE`
+    ADDHERE="^<!-- = INJECT HERE =* -->$"
     wget --no-check-certificate \
          -O $HTMLTMP             \
          $HTMLREMOTE > /dev/null 2>&1
@@ -297,12 +300,14 @@
   # ----------------------------------------------------------------------- #
   # UPLOAD UPDATED INDEX (WITH STATUS IDs)
   # ----------------------------------------------------------------------- #
-    ftpUpload $HTMLNEW; if [ -f $HTMLNEW ];then rm $HTMLNEW ;fi
+    ftpUpload $HTMLNEW
+
   fi
 
 # --------------------------------------------------------------------------- #
 # CLEAN UP / RM TEMPORARY FILES
 # --------------------------------------------------------------------------- #
+  if [ -f $HTMLNEW ];          then rm $HTMLNEW                           ;fi
   if [ -f ${TMP}.png         ];then rm ${TMP}.png                         ;fi
   if [ -f ${TMP}.svg         ];then rm ${TMP}.svg                         ;fi
   if [ -f ${TMP}.REMOTE.html ];then rm ${TMP}.REMOTE.html                 ;fi
