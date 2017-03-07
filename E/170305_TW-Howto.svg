@@ -16,7 +16,10 @@
    inkscape:version="0.48.3.1 r9886"
    width="1000"
    height="1000"
-   sodipodi:docname="170305_TW-Howto.svg">
+   sodipodi:docname="170305_TW-Howto.svg"
+   inkscape:export-filename="/home/christoph/0000_Projekte/SRV_Socialbots/GIT/E/170305_TW-Howto.png"
+   inkscape:export-xdpi="90"
+   inkscape:export-ydpi="90">
   <metadata
      id="metadata8">
     <rdf:RDF>
@@ -25,7 +28,7 @@
         <dc:format>image/svg+xml</dc:format>
         <dc:type
            rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
-        <dc:title />
+        <dc:title></dc:title>
       </cc:Work>
     </rdf:RDF>
   </metadata>
@@ -43,10 +46,10 @@
      id="namedview4"
      showgrid="false"
      showguides="true"
-     inkscape:zoom="26.689104"
-     inkscape:cx="7.6895529"
-     inkscape:cy="988.47371"
-     inkscape:current-layer="layer4">
+     inkscape:zoom="0.41086201"
+     inkscape:cx="544.342"
+     inkscape:cy="448.4227"
+     inkscape:current-layer="layer3">
     <sodipodi:guide
        position="0,1000"
        orientation="0,1000"
@@ -67,11 +70,13 @@
   <g
      inkscape:groupmode="layer"
      id="layer4"
-     inkscape:label="BG">
+     inkscape:label="BG"
+     style="display:inline">
     <path
        style="color:#000000;fill:#ff0000;fill-opacity:1;fill-rule:nonzero;stroke:none;stroke-width:20;marker:none;visibility:visible;display:inline;overflow:visible;enable-background:accumulate"
-       d="M 0 0 L 0 1000 L 1000 1000 L 1000 0 L 0 0 z M 10 10 L 11 10 L 11 11 L 10 11 L 10 10 z "
-       id="rect3160" />
+       d="m 0,0 0,1000 1000,0 L 1000,0 0,0 z m 10,10 1,0 0,1 -1,0 0,-1 z"
+       id="rect3160"
+       inkscape:connector-curvature="0" />
     <path
        inkscape:connector-curvature="0"
        id="path4262"
@@ -1026,7 +1031,7 @@
      inkscape:groupmode="layer"
      id="layer3"
      inkscape:label="CONTENT"
-     style="display:none">
+     style="display:inline">
     <path
        sodipodi:nodetypes="ccccc"
        inkscape:connector-curvature="0"
