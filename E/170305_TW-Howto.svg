@@ -43,10 +43,10 @@
      id="namedview4"
      showgrid="false"
      showguides="true"
-     inkscape:zoom="0.24364836"
-     inkscape:cx="16.765989"
-     inkscape:cy="572.89075"
-     inkscape:current-layer="layer3">
+     inkscape:zoom="26.689104"
+     inkscape:cx="7.6895529"
+     inkscape:cy="988.47371"
+     inkscape:current-layer="layer4">
     <sodipodi:guide
        position="0,1000"
        orientation="0,1000"
@@ -67,13 +67,17 @@
   <g
      inkscape:groupmode="layer"
      id="layer4"
-     inkscape:label="BG"
-     sodipodi:insensitive="true">
+     inkscape:label="BG">
     <path
        style="color:#000000;fill:#ff0000;fill-opacity:1;fill-rule:nonzero;stroke:none;stroke-width:20;marker:none;visibility:visible;display:inline;overflow:visible;enable-background:accumulate"
-       d="M 1000,0 0,0 l 0,1000 1000,0 z"
-       id="rect3160"
-       inkscape:connector-curvature="0" />
+       d="M 0 0 L 0 1000 L 1000 1000 L 1000 0 L 0 0 z M 10 10 L 11 10 L 11 11 L 10 11 L 10 10 z "
+       id="rect3160" />
+    <path
+       inkscape:connector-curvature="0"
+       id="path4262"
+       d="m 12,9 -3,0 0,3 3,0 z"
+       style="opacity:0.98999999;color:#000000;fill:#ff0000;fill-opacity:1;fill-rule:nonzero;stroke:none;stroke-width:20;marker:none;visibility:visible;display:inline;overflow:visible;enable-background:accumulate"
+       sodipodi:nodetypes="ccccc" />
   </g>
   <g
      inkscape:groupmode="layer"
@@ -1022,7 +1026,7 @@
      inkscape:groupmode="layer"
      id="layer3"
      inkscape:label="CONTENT"
-     style="display:inline">
+     style="display:none">
     <path
        sodipodi:nodetypes="ccccc"
        inkscape:connector-curvature="0"
