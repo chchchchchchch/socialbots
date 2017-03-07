@@ -226,7 +226,7 @@
                        <img src=\"$IMGSRC\"/></a>
                        </td></tr><tr><td class=\"t l\">
                        <a href=\"$HREFSVG\">SVG</a>
-                       </td><td class="t r">
+                       </td><td class=\"t r\">
                        <a href=\"$HREFPDF\">PDF</a>
                        </td></tr></table>"`
           HTMLADD="${HTMLADD}={NL}=${HTMLELEMENT}"
