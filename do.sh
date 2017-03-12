@@ -204,10 +204,48 @@
 
                   IMG=$OUTPUTDIR/${NAME}.png
                   PDF=$OUTPUTDIR/${NAME}.pdf
+                  GIF=$OUTPUTDIR/${NAME}.gif
           inkscape --export-png=${TMP}.png      \
                    --export-background-opacity=0 \
                    ${TMP}.svg > /dev/null 2>&1
                convert ${TMP}.png $IMG
+
+   # ===================================================================== #
+   # 2-BITISH THUMB
+   # ===================================================================== #
+     cp ${TMP}.svg ${TMP}2.svg
+     CANVAS='<path style="fill:#ccffaa;" \
+              d="m 0\,0 800\,0 0\,650 -800\,0 z" id="c" />'
+     TRANSFORM='transform="scale(0.5\,0.5)"'
+     sed -i 's/height="[0-9]*"/height="325"/g'        ${TMP}2.svg
+     sed -i 's/width="[0-9]*"/width="400"/g'          ${TMP}2.svg
+     sed -i "s,</metadata>,&<g $TRANSFORM>$CANVAS,g"  ${TMP}2.svg
+     sed -i 's,</svg>,</g>&,g'                        ${TMP}2.svg
+     sed -i 's/stroke-width:[0-9.]*/stroke-width:2/g' ${TMP}2.svg
+
+     COUNT=0
+     for COLOR in `sed 's/style="/\nS/g' ${TMP}2.svg | sed 's/"/\n/g' | #
+                   grep "^S" | sed 's/#[0-9a-f]\{6\}/\n&\n/g'  | #
+                   grep "^#" | sort -u`
+      do
+         sed -re "s/$COLOR/XxXxXx/g" ${TMP}2.svg  |  # PROTECT COLOR
+         sed -re 's/#[0-9A-Fa-f]{6}/#ffffff/g'   |  # ALL HEX TO WHITE
+         sed -re "s/XxXxXx/#000000/g" > ${TMP}3.svg # UNPROTECT TO BLACK
+         inkscape --export-pdf=${TMP}.pdf ${TMP}3.svg
+         convert -monochrome -flatten ${TMP}.pdf ${TMP}.gif
+         convert ${TMP}.gif -fill $COLOR -opaque black ${COUNT}.gif
+         if [ $COUNT -gt 0 ]; then
+         composite -compose Multiply -gravity center \
+                    collect.gif ${COUNT}.gif ${TMP}.gif
+              mv ${TMP}.gif collect.gif;rm ${COUNT}.gif
+         else mv ${COUNT}.gif collect.gif;rm ${TMP}.gif
+         fi;  COUNT=`expr $COUNT + 1`
+     done
+     convert collect.gif -fill $C1 -opaque black ${TMP}.gif
+     convert ${TMP}.gif -transparent "#ccffaa" $GIF
+     rm ${TMP}2.svg ${TMP}3.svg ${TMP}.pdf collect.gif ${TMP}.gif
+   # ===================================================================== #
+
           inkscape --export-pdf=${PDF}  \
                    --export-text-to-path \
                    $O > /dev/null 2>&1
@@ -219,18 +257,17 @@
                  HREF="XX$NAME"
               HREFSVG="${NAME}.svg"
               HREFPDF="${NAME}.pdf"
-          HTMLELEMENT=`echo "<table class=\"floin\" id=\"$ANCHOR\">
-                       <tr><td colspan=\"2\"
-                               class=\"px\">
-                       <a href=\"$HREF\" target=\"_blank\">
-                       <img src=\"$IMGSRC\"/></a>
-                       </td></tr><tr><td class=\"t l\">
-                       <a href=\"$HREFSVG\">SVG</a>
-                       </td><td class=\"t r\">
-                       <a href=\"$HREFPDF\">PDF</a>
-                       </td></tr></table>"`
+     HTMLELEMENT=`echo "<figure id=\"$ANCHOR\">
+                        <a href=\"$HREF\" target=\"_blank\">
+                        <img src=\"../_/32x26.gif\"
+                         data-src=\"$NAME.gif\" class=\"unveil\"/>
+                        <noscript><img src=\"$IMGSRC\"/></noscript>
+                        </a><figcaption>
+                        <a href=\"$HREFSVG\"><span class=\"l\">svg</span></a>
+                        <a href=\"$HREFPDF\"><span class=\"r\">pdf</span></a>
+                        </figcaption></figure>"`
           HTMLADD="${HTMLADD}={NL}=${HTMLELEMENT}"
-          FTPCOLLECT="$FTPCOLLECT $O $PDF $IMG"
+          FTPCOLLECT="$FTPCOLLECT $O $PDF $IMG $GIF"
 
          else
                echo "SOMETHING WENT WRONG"
@@ -257,7 +294,7 @@
          $HTMLREMOTE > /dev/null 2>&1
     HTMLADD=`echo $HTMLADD | tr -s ' ' | #
              sed 's/^={NL}=//' | sed 's/>[ ]*</></g'`
-    sed "s,${ADDHERE},${HTMLADD}\n\n&,g" $HTMLTMP | #
+    sed "s,${ADDHERE},&\n\n${HTMLADD},g" $HTMLTMP | #
     sed 's/={NL}=/\n/g' > $HTMLNEW
 
   # ----------------------------------------------------------------------- #
