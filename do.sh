@@ -294,12 +294,10 @@
      do
         ID=`echo $ELEMENT | sed 's/id=/\n&/' | #
             grep "^id=" | cut -d "\"" -f 2`
-        echo $ID
         HTMLNAME=`echo $ID | cut -c 2`
         HTMLREMOTE="http://freeze.sh/_/2017/socialbots/o/$HTMLNAME.html"
         HTMLTMP="${TMP}.$HTMLNAME.REMOTE.html"
         if [ ! -f $HTMLTMP ]; then
-             echo "$HTMLTMP does not exist"
              wget --no-check-certificate \
                   -O $HTMLTMP             \
                   $HTMLREMOTE > /dev/null 2>&1
@@ -307,7 +305,7 @@
         sed -i "s,${ADDHERE},&\n\n${ELEMENT},g" $HTMLTMP
    done ;)
 
-    for HTMLTMP in `ls *.html | grep "${TMP}\..\.REMOTE.html"`
+    for HTMLTMP in `ls *.* | grep "${TMP}\..\.REMOTE.html"`
      do
         HTMLUPDATE=`echo $HTMLTMP     | #
                     sed "s/${TMP}.//" | #
