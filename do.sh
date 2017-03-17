@@ -278,25 +278,43 @@
 # --------------------------------------------------------------------------- #
 # UPDATE FREEZE.SH
 # --------------------------------------------------------------------------- #
-  HTMLREMOTE="http://freeze.sh/_/2017/socialbots/o/index.html"
-  HTMLNEW=`basename $HTMLREMOTE`
 
   if [ `ls $OUTPUTDIR/*.* 2> /dev/null | #
         grep "TWEET.txt$" | wc -l` -gt 0 ]; then
 
+  ADDHERE="^<!-- = INJECT HERE =* -->$"
+
   # ----------------------------------------------------------------------- #
   # GET/UPDATE HTML
   # ----------------------------------------------------------------------- #
-    HTMLTMP=${TMP}.REMOTE.html
-    ADDHERE="^<!-- = INJECT HERE =* -->$"
-    wget --no-check-certificate \
-         -O $HTMLTMP             \
-         $HTMLREMOTE > /dev/null 2>&1
-    HTMLADD=`echo $HTMLADD | tr -s ' ' | #
-             sed 's/^={NL}=//' | sed 's/>[ ]*</></g'`
-    sed "s,${ADDHERE},&\n\n${HTMLADD},g" $HTMLTMP | #
-    sed 's/={NL}=/\n/g' > $HTMLNEW
+  ( IFS=$'\n'
+    for ELEMENT in `echo $HTMLADD       | #
+                    sed 's/={NL}=/\n/g' | #
+                    sed 's/>[ ]*</></g'`  #
+     do
+        ID=`echo $ELEMENT | sed 's/id=/\n&/' | #
+            grep "^id=" | cut -d "\"" -f 2`
+        echo $ID
+        HTMLNAME=`echo $ID | cut -c 2`
+        HTMLREMOTE="http://freeze.sh/_/2017/socialbots/o/$HTMLNAME.html"
+        HTMLTMP="${TMP}.$HTMLNAME.REMOTE.html"
+        if [ ! -f $HTMLTMP ]; then
+             echo "$HTMLTMP does not exist"
+             wget --no-check-certificate \
+                  -O $HTMLTMP             \
+                  $HTMLREMOTE > /dev/null 2>&1
+        fi
+        sed -i "s,${ADDHERE},&\n\n${ELEMENT},g" $HTMLTMP
+   done ;)
 
+    for HTMLTMP in `ls *.html | grep "${TMP}\..\.REMOTE.html"`
+     do
+        HTMLUPDATE=`echo $HTMLTMP     | #
+                    sed "s/${TMP}.//" | #
+                    cut -d "." -f 1`.html
+        mv $HTMLTMP $HTMLUPDATE
+        HTMLNEW="$HTMLNEW $HTMLUPDATE"
+    done
   # ----------------------------------------------------------------------- #
   # UPLOAD FILES ONLY (+ TEMPORARY INDEX)
   # ----------------------------------------------------------------------- #
@@ -342,9 +360,10 @@
 # --------------------------------------------------------------------------- #
 # CLEAN UP / RM TEMPORARY FILES
 # --------------------------------------------------------------------------- #
-  if [ -f $HTMLNEW ];          then rm $HTMLNEW                           ;fi
-  if [ -f ${TMP}.png         ];then rm ${TMP}.png                         ;fi
-  if [ -f ${TMP}.svg         ];then rm ${TMP}.svg                         ;fi
+  for HTMLUPDATE in `echo $HTMLNEW`;do
+  if [ -f $HTMLUPDATE        ];then rm $HTMLUPDATE                  ;fi; done
+  if [ -f ${TMP}.png         ];then rm ${TMP}.png                     ;fi
+  if [ -f ${TMP}.svg         ];then rm ${TMP}.svg                       ;fi
   if [ -f ${TMP}.REMOTE.html ];then rm ${TMP}.REMOTE.html                 ;fi
 
 # --------------------------------------------------------------------------- #
