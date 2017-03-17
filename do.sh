@@ -261,7 +261,7 @@
                         <a href=\"$HREF\" target=\"_blank\">
                         <img src=\"../_/32x26.gif\"
                          data-src=\"$NAME.gif\" class=\"unveil\"/>
-                        <noscript><img src=\"$IMGSRC\"/></noscript>
+                        <noscript><img src=\"$NAME.gif\"/></noscript>
                         </a><figcaption>
                         <a href=\"$HREFSVG\"><span class=\"l\">svg</span></a>
                         <a href=\"$HREFPDF\"><span class=\"r\">pdf</span></a>
