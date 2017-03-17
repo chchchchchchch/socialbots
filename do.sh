@@ -290,6 +290,7 @@
   ( IFS=$'\n'
     for ELEMENT in `echo $HTMLADD       | #
                     sed 's/={NL}=/\n/g' | #
+                    tr -s ' '           | #
                     sed 's/>[ ]*</></g'`  #
      do
         ID=`echo $ELEMENT | sed 's/id=/\n&/' | #
