@@ -78,13 +78,16 @@
          MENTION=`sed '/./{H;d;};x;s/\n/={NL}=/g' $MENTIONDUMP | #
                   grep -- "$IDUNDONE"`
 
-         MESSAGE=`echo $MENTION             | #
-                  sed 's/={NL}=/\n/g'       | #
-                  grep -v "^-.*\{5,\}$"     | #
-                  sed '/^[ ]*$/d'           | #
-                  head -n 1                 | #
-                  sed 's/\\\\\\u.\{4\}/-/g' | # RM (EMOJI) CRAP
-                  recode h0..utf-8`           #
+         MESSAGE=`echo $MENTION               | #
+                  sed 's/={NL}=/\n/g'         | #
+                  grep -v "^-.*\{5,\}$"       | #
+                  sed '/^[ ]*$/d'             | #
+                  head -n 1                   | #
+                  recode h0..utf8             | # DEAL WITH &amp; &gt; (?)
+                  ascii2uni -a U -q           | # CONVERT TO UNICODE
+                  recode utf8..h0             | # CONVERT TO HTML (TO IDENTIFY)
+                  sed 's/\&#[0-9]\{5,\};/-/g' | # REMOVE RANGE (+5)
+                  recode h0..utf8`              # BACK TO UTF-8
          MESSAGE=`echo -e "$MESSAGE "                | # START WITH TEXT
                   sed 's/^@makebotbot[^a-zA-Z0-9]//' | #
                   sed 's/^.*@makebotbot://g'         | #
