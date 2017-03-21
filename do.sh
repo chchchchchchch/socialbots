@@ -40,7 +40,6 @@
 
   if [ "$HASINPUT" != "YES" ] &&
      [ "$MINUTE"   != "0"   ] && [ "$MINUTE"   != "5" ]; then
-
 # --------------------------------------------------------------------------- #
   echo "-> CHECK MENTIONS" #  CHECK/COLLECT IF THERE'S ANTYTHING TO REPLY TO  #
 # --------------------------------------------------------------------------- #
@@ -130,18 +129,66 @@
 # --------------------------------------------------------------------------- #
 #  OTHERWISE: BE SELF-RELIANT
 # --------------------------------------------------------------------------- #
+    if [ "$HASINPUT" != "YES" ] && [ $((RANDOM%10)) -gt 5 ];then
+  # ============================================================ #
+  # GET OPTIONAL TEXT INPUT                                      #
+  # ============================================================ #
+    BOTPIT="http://freeze.sh/_/2017/botpit/show"
+    BPDUMP="$OUTPUTDIR/plus.txt"
+  # ------------------------------------------------------------ #
+  # APPEND ONLINE SOURCE TO LOCAL DUMP
+  # ------------------------------------------------------------ #
+    (IFS=$'\n'; for ENTRY in `curl -sS $BOTPIT`;do
+     MD5=`echo $ENTRY | md5sum | cut -d " " -f 1` #
+     echo "$MD5:$ENTRY" >> $BPDUMP ; done; )
+  # ------------------------------------------------------------ #
+  # COPY 'MARKED AS DONE'
+  # ------------------------------------------------------------ #
+    for MD5 in `grep "^XX:[0-9a-f]*:" $BPDUMP | cut -d ":" -f 2`
+    do sed -i "s/^${MD5}/XX:&/" $BPDUMP; done
+  # ------------------------------------------------------------ #
+  # SORT/UNIQ (IN PLACE)
+  # ------------------------------------------------------------ #
+    sort -u -o $BPDUMP $BPDUMP
+  # ------------------------------------------------------------ #
+  # SELECT RANDOM LINE (IF NOT 'MARKED AS DONE')
+  # ------------------------------------------------------------ #
+    SELECT=`grep -v "^XX:" $BPDUMP      | #
+            sed 's,http.\?://[^ ]* ,,g' | # REMOVE URLS
+            awk '{print NF ":" $0}'     | # PRINT WORD NUMBER
+            grep -v "^[0123]:"          | # PRINT ONLY > 4
+            cut -d ":" -f 2             | #
+            shuf -n 1`                    # SELECT RANDOM (ONE)
+  # ------------------------------------------------------------ #
+  # GET CONTENT AND MARK AS DONE (IF SOMETHING'S THERE)
+  # ------------------------------------------------------------ #
+    if [ `echo $SELECT | wc -c` -gt 1 ]; then
+          NOISE=`grep $SELECT $BPDUMP        | #
+                 cut -d ":" -f 2-            | #
+                 tr -s ' '                   | # SQUEEZE SPACES
+                 sed 's,http.\?://[^ ]* ,,g' | # REMOVE URLS
+                 sed 's/[ ,]*$//g'`            # RM THINGS AT THE END
+        # ---------------------------------------------- #
+        # MARK AS DONE
+        # ---------------------------------------------- #
+          sed -i "s/^$SELECT/XX:&/" $BPDUMP        
+        # ---------------------------------------------- #
+     else NOISE=""
+    fi
+  # ------------------------------------------------------------ #
+    fi
 
-     OUTPUT=`./mk.sh "$NOISE" | cut -d ":" -f 2`
-     if [ -f $OUTPUT ]; then
-         THISTWEET=`echo "$OUTPUT" | sed 's/ /\n/g' | #
-                    tail -n 1 | sed 's/\.svg$//'`-TWEET.txt
-         THISANCHOR=`basename "$THISTWEET"       | #
-                     sed 's/-TWEET\.txt$//'      | #
-                     cut -c 1-8 | sed 's/^B/bt/' | #
-                     tr [:upper:] [:lower:]`       #
-         THISMESSAGE="$BASEURL/$THISANCHOR"
-         echo "$THISMESSAGE" > $THISTWEET
-     fi
+    OUTPUT=`./mk.sh "$NOISE" | cut -d ":" -f 2`
+    if [ -f $OUTPUT ]; then
+        THISTWEET=`echo "$OUTPUT" | sed 's/ /\n/g' | #
+                   tail -n 1 | sed 's/\.svg$//'`-TWEET.txt
+        THISANCHOR=`basename "$THISTWEET"       | #
+                    sed 's/-TWEET\.txt$//'      | #
+                    cut -c 1-8 | sed 's/^B/bt/' | #
+                    tr [:upper:] [:lower:]`       #
+        THISMESSAGE="$BASEURL/$THISANCHOR"
+        echo "$THISMESSAGE" > $THISTWEET
+    fi
   fi
 
 # --------------------------------------------------------------------------- #
