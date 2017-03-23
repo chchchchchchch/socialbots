@@ -108,9 +108,9 @@
          ANOTHEROUTPUT=`./mk.sh "$MESSAGE" | cut -d ":" -f 2`
          if [ -f $ANOTHEROUTPUT ]; then
              THISTWEET=`echo "$ANOTHEROUTPUT" | sed 's/ /\n/g' | #
-                        tail -n 1 | sed 's/\.svg$//'`-TWEET.txt
+                        tail -n 1 | sed 's/\.svg$//'`TWEET.txt
              THISANCHOR=`basename "$THISTWEET"       | #
-                         sed 's/-TWEET\.txt$//'      | # 
+                         sed 's/TWEET\.txt$//'       | # 
                          cut -c 1-8 | sed 's/^B/bt/' | #
                          tr [:upper:] [:lower:]`       #
              THISMESSAGE="$MFROM →  $BASEURL/$THISANCHOR -r=$MID"
@@ -181,9 +181,9 @@
     OUTPUT=`./mk.sh "$NOISE" | cut -d ":" -f 2`
     if [ -f $OUTPUT ]; then
         THISTWEET=`echo "$OUTPUT" | sed 's/ /\n/g' | #
-                   tail -n 1 | sed 's/\.svg$//'`-TWEET.txt
+                   tail -n 1 | sed 's/\.svg$//'`TWEET.txt
         THISANCHOR=`basename "$THISTWEET"       | #
-                    sed 's/-TWEET\.txt$//'      | #
+                    sed 's/TWEET\.txt$//'       | #
                     cut -c 1-8 | sed 's/^B/bt/' | #
                     tr [:upper:] [:lower:]`       #
         THISMESSAGE="$BASEURL/$THISANCHOR"
@@ -202,7 +202,7 @@
         # ================================================================ #
         # MAKE IMAGE FOR TWITTER
         # ================================================================ #
-          TWITTERUPLOAD=${O%%.*}-TWEET.png 
+          TWITTERUPLOAD=${O%%.*}TWEET.png 
 
          #C1="#ff0000";C2="#ff0000";BG="#ffffff"
           C1="#1b17cf";C2="#1b17cf";BG="#ffffff"
@@ -383,7 +383,7 @@
            tweet `cat $T` ${T%%.*}.png
          # ----------------------------------------------------------- #
            BASEURL="https://twitter.com/makebotbot/status"
-           NAME=`basename $T | cut -d "." -f 1 | sed 's/-TWEET$//'`
+           NAME=`basename $T | cut -d "." -f 1 | sed 's/TWEET$//'`
            FOOHREF="XX${NAME}"
            NEWHREF="$BASEURL/$STATUSID"
            sed -i "s,$FOOHREF,$NEWHREF,g" $HTMLNEW
