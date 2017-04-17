@@ -23,6 +23,7 @@
   OUTDIR=_
   SRC=E/000000_notabotyet.svg
   FOO="FOOXXX87653"
+  SVGWIDTH="800"
 # --------------------------------------------------------------------------- #
 # CONFIGURATION 
 # --------------------------------------------------------------------------- #
@@ -106,9 +107,11 @@
                         grep -v "$INPUTHERE"` # RM SELECTED INPUT
         DONOTINPUTHERE=`echo $DONOTINPUTHERE | sed 's/ /|/g'`
         INPUTFILTER="egrep \"$INPUTHERE\" | egrep -v \"$DONOTINPUTHERE\"";
+        FLIP=""
    else 
         DONOTINPUTHERE=`echo $LAYERS2INPUT | sed 's/ /|/g'`
         INPUTFILTER="egrep -v \"$DONOTINPUTHERE\"";
+        FLIP=" transform=\"scale(-1,1) translate(-$SVGWIDTH,0)\""
   fi
 
 # --------------------------------------------------------------------------- #
@@ -196,6 +199,10 @@
 
       sed -i "${LN}s/$FOO/$INJECT/g" $SVGOUT
       sed -i "s/$FOO//g" $SVGOUT
+
+      if [ `seq 1 100 | #
+            shuf -n 1 --random-source=<(mkseed $NAME)` -gt 50 ]
+      then sed -i "s/groupmode=\"layer\"/&$FLIP/g" $SVGOUT ; fi
 
            DONE="YES"
       else
