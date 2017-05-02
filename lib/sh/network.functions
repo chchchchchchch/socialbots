@@ -1,0 +1,22 @@
+
+function checkConnection() {
+
+ # CHECK IF URLS REACHABLE, OTHERWISE QUIT.
+ # ------------------------------------------------------------ #
+  for URL in $*
+   do
+     URL=`echo $URL | sed 's,^,http://,'`
+     RESPONSE=`curl -s -o /dev/null -IL -w "%{http_code}" $URL`
+     if [ $RESPONSE == '200' ]; then  
+         #echo "${URL}: ok"
+          sleep 0;
+      else
+          echo "${URL}: something is wrong (${RESPONSE})"
+          EXIT="yes"
+     fi
+  done
+
+  if [ "X$EXIT" == "Xyes" ]; then exit 0; fi
+
+ }
+
