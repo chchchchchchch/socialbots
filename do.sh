@@ -116,7 +116,8 @@
                          sed 's/TWEET\.txt$//'       | # 
                          cut -c 1-8 | sed 's/^B/bt/' | #
                          tr [:upper:] [:lower:]`       #
-             THISMESSAGE="$MFROM →  $BASEURL/$THISANCHOR -r=$MID"
+            #THISMESSAGE="$MFROM →  $BASEURL/$THISANCHOR -r=$MID"
+             THISMESSAGE="$BASEURL/$THISANCHOR ←  $MFROM -r=$MID"
              echo "$THISMESSAGE" > $THISTWEET
        # -------------------------------------------------------------- #
        # MARK AS DONE
