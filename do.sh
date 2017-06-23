@@ -117,7 +117,7 @@
                          cut -c 1-8 | sed 's/^B/bt/' | #
                          tr [:upper:] [:lower:]`       #
             #THISMESSAGE="$MFROM →  $BASEURL/$THISANCHOR -r=$MID"
-             THISMESSAGE="$BASEURL/$THISANCHOR ←  $MFROM -r=$MID"
+             THISMESSAGE="$BASEURL/$THISANCHOR made for $MFROM -r=$MID"
              echo "$THISMESSAGE" > $THISTWEET
        # -------------------------------------------------------------- #
        # MARK AS DONE
