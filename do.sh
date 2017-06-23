@@ -190,7 +190,9 @@
                     sed 's/TWEET\.txt$//'       | #
                     cut -c 1-8 | sed 's/^B/bt/' | #
                     tr [:upper:] [:lower:]`       #
-        THISMESSAGE="$BASEURL/$THISANCHOR"
+        if [ "$HASINPUT" == "YES" ];then
+              THISMESSAGE="$NOISE →  $BASEURL/$THISANCHOR"
+        else  THISMESSAGE="$BASEURL/$THISANCHOR"; fi
         echo "$THISMESSAGE" > $THISTWEET
     fi
   fi
