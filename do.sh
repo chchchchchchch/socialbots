@@ -411,15 +411,23 @@
     ftpUpload $HTMLNEW
 
   fi
+# --------------------------------------------------------------------------- #
+# SHOW COLLECTED LOGS
+# --------------------------------------------------------------------------- #
+  if [ `ls ${TMP}.*.log 2>/dev/null | wc -l` -gt 0 ];then cat ${TMP}*.log; fi
 
 # --------------------------------------------------------------------------- #
 # CLEAN UP / RM TEMPORARY FILES
 # --------------------------------------------------------------------------- #
   for HTMLUPDATE in `echo $HTMLNEW`;do
   if [ -f $HTMLUPDATE        ];then rm $HTMLUPDATE                  ;fi; done
-  if [ -f ${TMP}.png         ];then rm ${TMP}.png                     ;fi
-  if [ -f ${TMP}.svg         ];then rm ${TMP}.svg                       ;fi
-  if [ -f ${TMP}.REMOTE.html ];then rm ${TMP}.REMOTE.html                 ;fi
+# MAKE SURE $TMPID IS SET FOR WILDCARD DELETE
+# --------------------------------------------------------------------------- #
+  if [ `echo ${TMP} | wc -c` -ge 4 ] &&
+     [ `ls   ${TMP}*.* 2>/dev/null | wc -l` -gt 0 ]
+  then
+        rm ${TMP}*.*
+  fi
 
 # --------------------------------------------------------------------------- #
 # FOR THE LOG
