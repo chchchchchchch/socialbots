@@ -4,16 +4,17 @@
             cut -d "/" -f 2- | #
             rev`
 
-   TWACCOUNT=`find $BASEDIR -name "twitter.account" | head -n 1`
+    TWACCOUNT=`find $BASEDIR -name "twitter.account" | head -n 1`
    TWUSERNAME=`cat $TWACCOUNT | grep "username" | cut -d ":" -f 2`
     TWURLLOCK="/tmp/twurl.lock"
 
 # --------------------------------------------------------------------------- #
    function setdefaultuserandtweet() {
 
+     CCNT=0
      while [ `ps aux | grep twurl | #
               grep -v grep | wc -l` -gt 0 ] ||
-           [ -f $TWURLLOCK ]
+           [ -f $TWURLLOCK ] && [ $CCNT -lt 1000 ]
       do
             COLLISION=`ps axo command | #
                        grep twurl | grep -v grep | #
@@ -27,13 +28,22 @@
             echo "WAITING (${WHEN} -> $LOCKMESSAGE)" >> ${TMP}.collision.log
             fi
             sleep 5
+            CCNT=`expr $CCNT + 1`
+            if [ $CCNT -ge 100 ]; then
+                 echo '"errors": EXIT BY TWURL LOCK!' | tee -a ${TMP}.collision.log
+                 UNLOCK="NOT";exit 1;
+            fi
      done
-           echo "$TWUSERNAME" > $TWURLLOCK
-           /usr/local/bin/twurl set default $TWUSERNAME
-           sleep 2
-           EVALTHIS="/usr/local/bin/twurl $*"
-           eval $EVALTHIS
-           rm $TWURLLOCK
+           if [ "$UNLOCK" != "NOT" ]; then
+                 echo "$TWUSERNAME" > $TWURLLOCK
+                 /usr/local/bin/twurl set default $TWUSERNAME
+                 sleep 2
+                 EVALTHIS="/usr/local/bin/twurl $*"
+                 eval $EVALTHIS
+                 rm $TWURLLOCK;
+           else
+                 exit 1;
+           fi
    }
 
    TWURL="setdefaultuserandtweet"
