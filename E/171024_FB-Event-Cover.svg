@@ -15,7 +15,7 @@
    width="1920"
    height="1005"
    sodipodi:docname="171024_FB-Event-Cover.svg"
-   inkscape:export-filename="/home/christoph/0000_Projekte/SRV_Socialbots/GIT/E/170210_Site-Banner.png"
+   inkscape:export-filename="/home/christoph/0000_Projekte/SRV_Socialbots/GIT/E/171024_FB-Event-Cover.png"
    inkscape:export-xdpi="90"
    inkscape:export-ydpi="90">
   <metadata
@@ -26,7 +26,7 @@
         <dc:format>image/svg+xml</dc:format>
         <dc:type
            rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
-        <dc:title />
+        <dc:title></dc:title>
       </cc:Work>
     </rdf:RDF>
   </metadata>
@@ -45,10 +45,10 @@
      inkscape:window-height="480"
      id="namedview4"
      showgrid="false"
-     inkscape:zoom="0.26470358"
-     inkscape:cx="1072.5748"
-     inkscape:cy="571.45097"
-     inkscape:current-layer="layer8"
+     inkscape:zoom="6.5387098"
+     inkscape:cx="34.013223"
+     inkscape:cy="-12.413585"
+     inkscape:current-layer="layer4"
      showguides="true"
      inkscape:guide-bbox="true"
      inkscape:snap-global="false">
@@ -143,7 +143,12 @@
        inkscape:connector-curvature="0"
        id="path3009-3"
        d="m 0,0 1920,0 0,1005 -1920,0 z"
-       style="color:#000000;fill:#f9f9f9;fill-opacity:1;fill-rule:nonzero;stroke:none;stroke-width:1;marker:none;visibility:visible;display:inline;overflow:visible;enable-background:accumulate" />
+       style="opacity:0.98999999;color:#000000;fill:#f9f9f9;fill-opacity:1;fill-rule:nonzero;stroke:none;stroke-width:1;marker:none;visibility:visible;display:inline;overflow:visible;enable-background:accumulate" />
+    <path
+       style="color:#000000;fill:#f9f9f9;fill-opacity:1;fill-rule:nonzero;stroke:none;stroke-width:1;marker:none;visibility:visible;display:inline;overflow:visible;enable-background:accumulate"
+       d="m 0,0 0,1005 1920,0 L 1920,0 0,0 z m 10,994 1,0 0,1 -1,0 0,-1 z"
+       id="path12664"
+       inkscape:connector-curvature="0" />
   </g>
   <g
      style="display:inline"
