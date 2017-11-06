@@ -3,7 +3,7 @@
 # --------------------------------------------------------------------------- #
 # CONFIGURE.
 # --------------------------------------------------------------------------- #
-  OUTPUTDIR="_";BASEURL="http://freeze.sh" # USED FOR REDIRECT
+  OUTPUTDIR="_";BASEURL="https://freeze.sh" # USED FOR REDIRECT
   MENTIONDUMP=$OUTPUTDIR/dump.mentions
   TMP="XXTMP"`date +%s` # PREFIX TO IDENTIFY TMP FILES
 # --------------------------------------------------------------------------- #
