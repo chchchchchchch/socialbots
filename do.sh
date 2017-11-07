@@ -91,10 +91,12 @@
                   sed 's/\&#[0-9]\{5,\};/-/g' | # REMOVE RANGE (+5)
                   recode h0..utf8`              # BACK TO UTF-8
          MESSAGE=`echo -e "$MESSAGE "                | # START WITH TEXT
-                  sed 's/^@makebotbot[^a-zA-Z0-9]//' | #
-                  sed 's/^.*@makebotbot://g'         | #
-                  sed 's/^[ \t]*//'                  | # REMOVE LEADING BLANKS
-                  sed 's/[ \t]$//'`                    # REMOVE CLOSING BLANKS
+                  sed ':a;N;$!ba;s/\n/ /g'           | # RM LINEBREAKS
+                  tr -s ' '                          | # SQUEEZE SPACES
+                  sed 's/^@makebotbot[^a-zA-Z0-9]//' | # RM @makebotbot (1)
+                  sed 's/^.*@makebotbot://g'         | # RM @makebotbot (2)
+                  sed 's/^[ \t]*//'                  | # RM LEADING BLANKS
+                  sed 's/[ \t]$//'`                    # RM CLOSING BLANKS
 
              MID=`echo $MENTION         | #
                   sed 's/={NL}=/\n/g'   | #
