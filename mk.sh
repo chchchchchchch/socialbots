@@ -32,12 +32,12 @@
 # --------------------------------------------------------------------------- #
 # CHECK INPUT
 # --------------------------------------------------------------------------- #
-  if [ `echo $* | wc -c` -le 1 ]; then 
-        INPUTTXT="NO"
-        NOISE="";CHARSNEEDED="0"
-   else INPUTTXT="YES";NOISE=`echo "$*" | sed 's/^[ ]*//g'`
-       # CHECK AND EXPAND URLS
-       # ----------------------------------------------------------------  #
+  if [ `echo $* | sed 's/ [^ ]*\.kombi\b//g' | wc -c` -le 1 ]; then 
+        INPUTTXT="NO";NOISE="";CHARSNEEDED="0"
+  else  INPUTTXT="YES";
+        NOISE=`echo "$*" | sed 's/ [^ ]*\.kombi\b//g' | sed 's/^[ ]*//g'`
+      # CHECK AND EXPAND URLS
+      # ----------------------------------------------------------------  #
          NOISE=`echo "$NOISE" | sed 's/\\\\\//\//g'` # DE-ESCAPE
          for URL in `echo "$NOISE"      | # START WITH MESSAGE
                      sed 's/ /\n/g'     | # PUT ON SEPARATE LINES
@@ -55,6 +55,8 @@
          done; NOISE=`echo "$NOISE" | sed 's/\//\\\\\//g'` # RE-ESCAPE
        # ----------------------------------------------------------------  #
         CHARSNEEDED=`echo "$NOISE" | wc -c`; fi
+  KOMBI=`echo "$*" | sed 's/ /\n/g' | grep "[0-9]*\.kombi" | head -n 1`
+         if [ -f "$KOMBI" ];then INPUTKOMBI="YES";KOMBI=`cat $KOMBI`; fi
 
 # =========================================================================== #
 # DO IT NOW!
@@ -73,6 +75,9 @@
   sed "s/^[ \t]*//"                      | # REMOVE LEADING BLANKS
   tr -s ' '                              | # REMOVE CONSECUTIVE BLANKS
   tee > ${SVG%%.*}.tmp                     # WRITE TO TEMPORARY FILE
+# --------------------------------------------------------------------------- #
+
+  if [ "$INPUTKOMBI" != "YES" ];then 
 # --------------------------------------------------------------------------- #
 # CHOOSE LAYERS THAT ALLOW INPUT (OR NOT)
 # --------------------------------------------------------------------------- #
@@ -211,7 +216,44 @@
 
       fi
   done
+# --------------------------------------------------------------------------- #
+  else
+       NAME=`echo $KOMBI$NOISE | md5sum | #
+             cut -d " " -f 1 | cut -c 1-12 | #
+             sed 's/.$/K/' | tr [:lower:] [:upper:]`
+      SVGOUT=$OUTDIR/B${NAME}.svg
 
+      echo "KOMBI PROVIDED"
+      echo "WRITING: $SVGOUT"
+
+      grep -n 'label="XX_DEKO' ${SVG%%.*}.tmp   | #
+      sed 's/display:inline/display:none/g'       > ${SVGOUT}.tmp
+
+      head -n 1 ${SVG%%.*}.tmp                           >  $SVGOUT
+      for  LAYERNAME in `echo $KOMBI`
+        do grep -n "label=\"$LAYERNAME\"" ${SVG%%.*}.tmp >> ${SVGOUT}.tmp
+      done
+      cat ${SVGOUT}.tmp | sort -n | cut -d ":" -f 2-     >> $SVGOUT
+      echo "</svg>"                                      >> $SVGOUT
+      rm ${SVGOUT}.tmp
+
+      CHARCNT=`echo "$NOISE" | wc -c`
+
+      if   [ $CHARCNT -le  5 ];then FONTSIZE=90
+      elif [ $CHARCNT -le 15 ];then FONTSIZE=60
+      elif [ $CHARCNT -lt 35 ];then FONTSIZE=40
+      elif [ $CHARCNT -lt 70 ];then FONTSIZE=30
+      else   FONTSIZE=20; fi
+
+      INJECT=`echo "$NOISE"          | # ASSUMED UTF-8
+              sed "s/&/\\\\\&amp;/g" | #
+              sed "s/\"/\\\\\"/g"`     #
+      LN=`grep -n $FOO $SVGOUT | cut -d ":" -f 1 | tail -n 1`
+
+      sed -i "${LN}s/$FOO/$INJECT/g" $SVGOUT
+      sed -i "s/$FOO//g" $SVGOUT
+      sed -i "s/font-size:[0-9pxt;]*/font-size:${FONTSIZE};/g" $SVGOUT
+  fi
 # --------------------------------------------------------------------------- #
 # REMOVE TEMP FILES
 # --------------------------------------------------------------------------- #

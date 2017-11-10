@@ -4,8 +4,17 @@
 # CONFIGURE.
 # --------------------------------------------------------------------------- #
   OUTPUTDIR="_";BASEURL="https://freeze.sh" # USED FOR REDIRECT
+  KOMBIURL="https://freeze.sh/_/2017/socialbots/l"
+  KOMBIDUMP=$OUTPUTDIR/dump.kombis
   MENTIONDUMP=$OUTPUTDIR/dump.mentions
+  LOCKFILE="/tmp/makebotbot.lock"
   TMP="XXTMP"`date +%s` # PREFIX TO IDENTIFY TMP FILES
+# --------------------------------------------------------------------------- #
+# CHECK IF ALREADY RUNNING (CRON COLLISION)
+# --------------------------------------------------------------------------- #
+  if [ -f $LOCKFILE ];then echo "------- SKIPPING CRON."
+                           exit 99; fi
+  touch $LOCKFILE
 # --------------------------------------------------------------------------- #
 # CONFIGURE YOURSELF
 # --------------------------------------------------------------------------- #
@@ -43,12 +52,12 @@
 
   if [ "$HASINPUT" != "YES" ] &&
      [ "$MINUTE"   != "0"   ] && [ "$MINUTE"   != "5" ]; then
-# --------------------------------------------------------------------------- #
+# =========================================================================== #
   echo "-> CHECK MENTIONS" #  CHECK/COLLECT IF THERE'S ANTYTHING TO REPLY TO  #
 # --------------------------------------------------------------------------- #
+# GET MENTIONS INFO FROM TWITTER (+APPEND TO DUMP)
+# =========================================================================== # 
 
-  # GET MENTIONS INFO FROM TWITTER (+APPEND TO DUMP)
-  # --------------------------------------------------------------------- # 
     getMentions >> $MENTIONDUMP
 
   # --------------------------------------------------------------------- #
@@ -111,6 +120,7 @@
            MFROM=`echo @$MFROM | sed 's/@makebotbot/makebotbot/g'`
 
          ANOTHEROUTPUT=`./mk.sh "$MESSAGE" | cut -d ":" -f 2`
+
          if [ -f $ANOTHEROUTPUT ]; then
              THISTWEET=`echo "$ANOTHEROUTPUT" | sed 's/ /\n/g' | #
                         tail -n 1 | sed 's/\.svg$//'`TWEET.txt
@@ -121,17 +131,107 @@
             #THISMESSAGE="$MFROM →  $BASEURL/$THISANCHOR -r=$MID"
              THISMESSAGE="$BASEURL/$THISANCHOR made for $MFROM -r=$MID"
              echo "$THISMESSAGE" > $THISTWEET
-       # -------------------------------------------------------------- #
-       # MARK AS DONE
-       # -------------------------------------------------------------- #
+           # ------------------------------------------------------------ #
+           # MARK AS DONE
+           # ------------------------------------------------------------ #
              sed -i "s/^\(-\)\($IDORIGINAL\)/-XX\2/" $MENTIONDUMP
-
+           # ------------------------------------------------------------ #
+           # COLLECT
+           # ------------------------------------------------------------ #
              OUTPUT="$OUTPUT $ANOTHEROUTPUT"
-         fi
-
+        fi
     done
-         if [ -f ${TMP}.log ];then cat ${TMP}.log; rm ${TMP}.log ;fi
-  else
+
+# =========================================================================== # 
+  echo "-> CHECK KOMBINATOR" #  CHECK/COLLECT ANTYTHING NEW                   #
+# --------------------------------------------------------------------------- #
+  wget -q -O - $KOMBIURL | sed '/^[ \t]*$/d' >> ${TMP}.kombidump
+
+   (IFS=$'\n';C=1
+    for L in `cat ${TMP}.kombidump`;do
+              ID=`echo "$L" | md5sum | #
+                  cut -d " " -f 1    | #
+                  sed 's/[^0-9]/0/g'`
+              sed "${C}s/^/${ID}|/" ${TMP}.kombidump | #
+              head -n $C | tail -n 1 >> $KOMBIDUMP
+              C=`expr $C + 1`;
+    done ;) ; if [ -f ${TMP}.kombidump ];then rm ${TMP}.kombidump; fi
+
+  # --------------------------------------------------------------------- #
+  # FIND IDs MARKED AS DONE
+  # --------------------------------------------------------------------- # 
+    for IDDONE in `grep "^-XX-[0-9]\{32\}" $KOMBIDUMP | #
+                   cut -d "|" -f 1`
+     do
+        IDORIGINAL=`echo $IDDONE      | # DISPLAY ID
+                    sed 's/[^0-9]*//g'` # RM ALL BUT NUMBERS
+      # - ---------------------------------------------------------- #
+      # MARKED SAME IDs (IF UNMARKED) AS DONE
+      # ------------------------------------------------------------ #
+        sed -i "s/^$IDORIGINAL/-XX-&/" $KOMBIDUMP
+    done
+  # --------------------------------------------------------------------- #
+  # CLEAN UP DUMP (REMOVE DUPLICATES)
+  # --------------------------------------------------------------------- #
+    sort -u -t'|' -k 2,2 $KOMBIDUMP -o $KOMBIDUMP
+  # --------------------------------------------------------------------- #
+  # PROCESS IDs (NOT OLDER IF ONE HOUR)
+  # --------------------------------------------------------------------- #
+    NOW=`date +%s%N | cut -c 1-14`
+    ONEHOURAGO=`expr $NOW - 36000000`
+    for IDUNDONE in `grep -v "^-XX-" $KOMBIDUMP | cut -d "|" -f 1`
+      do
+         TIME=`grep $IDUNDONE $KOMBIDUMP | #
+               cut -d "|" -f 2 | #
+               sed 's/[^0-9]*//g' | cut -c 1-14`
+
+         if [ "$TIME" -gt "$ONEHOURAGO" ];then
+
+         KOMBI=`grep $IDUNDONE $KOMBIDUMP | #
+                cut -d "|" -f 3`
+         echo "$KOMBI" | sed 's/:/ /g' > ${TMP}.kombi
+
+         MESSAGE=`grep $IDUNDONE $KOMBIDUMP   | # FIND MATCHING LINE
+                  cut -d "|" -f 4-            | # SELECT AFTER FIELD 4
+                  recode HTML..utf8           | # DEAL WITH &amp; &gt; (?)
+                  ascii2uni -a U -q           | # CONVERT TO UNICODE
+                  recode utf8..h0             | # CONVERT TO HTML (TO IDENTIFY)
+                  sed 's/\&#[0-9]\{5,\};/-/g' | # REMOVE RANGE (+5)
+                  recode h0..utf8`              # BACK TO UTF-8
+         MESSAGE=`echo -e "$MESSAGE "         | # START WITH TEXT
+                  sed ':a;N;$!ba;s/\n/ /g'    | # RM LINEBREAKS
+                  tr -s ' '                   | # SQUEEZE SPACES
+                  sed 's/^[ \t]*//'           | # RM LEADING BLANKS
+                  sed 's/[ \t]$//'`             # RM CLOSING BLANKS
+
+          ANOTHEROUTPUT=`./mk.sh "$MESSAGE" ${TMP}.kombi | #
+                         grep "^WRITING:" | cut -d ":" -f 2`
+
+          if [ -f $ANOTHEROUTPUT ]; then
+
+             THISTWEET=`echo "$ANOTHEROUTPUT" | sed 's/ /\n/g' | #
+                        tail -n 1 | sed 's/\.svg$//'`TWEET.txt
+             THISANCHOR=`basename "$THISTWEET"       | #
+                         sed 's/TWEET\.txt$//'       | # 
+                         cut -c 1-8 | sed 's/^B/bt/' | #
+                         tr [:upper:] [:lower:]`       #
+             THISMESSAGE="$BASEURL/$THISANCHOR"
+             echo "$THISMESSAGE" > $THISTWEET
+           # ---------------------------------------------------------- #
+           # MARK AS DONE
+           # ---------------------------------------------------------- #
+             sed -i "s/${IDUNDONE}/-XX-&/" $KOMBIDUMP
+           # ---------------------------------------------------------- #
+           # COLLECT
+           # ---------------------------------------------------------- #
+             OUTPUT="$OUTPUT $ANOTHEROUTPUT"
+          fi
+         fi
+    done
+
+    if [ -f ${TMP}.log ];then cat ${TMP}.log; rm ${TMP}.log ;fi
+ 
+ else
 # --------------------------------------------------------------------------- #
 #  OTHERWISE: BE SELF-RELIANT
 # --------------------------------------------------------------------------- #
@@ -183,20 +283,23 @@
     fi
   # ------------------------------------------------------------ #
     fi
-
+  # ------------------------------------------------------------ #
+    if [ $((RANDOM%10)) -gt 9 ];then
     OUTPUT=`./mk.sh "$NOISE" | cut -d ":" -f 2`
-    if [ -f $OUTPUT ]; then
-        THISTWEET=`echo "$OUTPUT" | sed 's/ /\n/g' | #
-                   tail -n 1 | sed 's/\.svg$//'`TWEET.txt
-        THISANCHOR=`basename "$THISTWEET"       | #
-                    sed 's/TWEET\.txt$//'       | #
-                    cut -c 1-8 | sed 's/^B/bt/' | #
-                    tr [:upper:] [:lower:]`       #
-        if [ "$HASINPUT" == "YES" ];then
-              THISMESSAGE="$NOISE →  $BASEURL/$THISANCHOR"
-        else  THISMESSAGE="$BASEURL/$THISANCHOR"; fi
-        echo "$THISMESSAGE" > $THISTWEET
+      if [ -f $OUTPUT ]; then
+          THISTWEET=`echo "$OUTPUT" | sed 's/ /\n/g' | #
+                     tail -n 1 | sed 's/\.svg$//'`TWEET.txt
+          THISANCHOR=`basename "$THISTWEET"       | #
+                      sed 's/TWEET\.txt$//'       | #
+                      cut -c 1-8 | sed 's/^B/bt/' | #
+                      tr [:upper:] [:lower:]`       #
+          if [ "$HASINPUT" == "YES" ];then
+                THISMESSAGE="$NOISE →  $BASEURL/$THISANCHOR"
+          else  THISMESSAGE="$BASEURL/$THISANCHOR"; fi
+          echo "$THISMESSAGE" > $THISTWEET
+      fi
     fi
+  # ------------------------------------------------------------ #
   fi
 
 # --------------------------------------------------------------------------- #
@@ -380,18 +483,18 @@
 # --------------------------------------------------------------------------- #
 # TWEET
 # --------------------------------------------------------------------------- #
-  for T in `ls $OUTPUTDIR/*.* | grep "TWEET.txt$"`
+  for T in `ls -tr $OUTPUTDIR/*.* | grep "TWEET.txt$"`
    do
       if [ -f $T ] && 
          [ -f ${T%%.*}.png ]
       then
            echo ""; WHEN=`date "+%d.%m.%Y %H:%M:%S"`
+           NAME=`basename $T | cut -d "." -f 1 | sed 's/TWEET$//'`
            echo "PROCESSING: $NAME (${WHEN})"
          # ----------------------------------------------------------- #
            tweet `cat $T` ${T%%.*}.png
          # ----------------------------------------------------------- #
            BASEURL="https://twitter.com/makebotbot/status"
-           NAME=`basename $T | cut -d "." -f 1 | sed 's/TWEET$//'`
            FOOHREF="XX${NAME}"
            NEWHREF="$BASEURL/$STATUSID"
            sed -i "s,$FOOHREF,$NEWHREF,g" $HTMLNEW
@@ -436,5 +539,6 @@
 # --------------------------------------------------------------------------- #
   echo -e "READY: "`date "+%d.%m.%Y %H:%M:%S"`"\n--------------------------\n"
 
+  rm $LOCKFILE
 
 exit 0;
