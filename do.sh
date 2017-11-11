@@ -284,8 +284,11 @@
   # ------------------------------------------------------------ #
     fi
   # ------------------------------------------------------------ #
-    if [ $((RANDOM%10)) -gt 9 ];then
-    OUTPUT=`./mk.sh "$NOISE" | cut -d ":" -f 2`
+    if [ $((RANDOM%10)) -gt 5 ] || 
+       [ "$HASINPUT" == "YES" ] ||
+       [ `echo $NOISE | wc -c` -gt 2 ]
+     then
+      OUTPUT=`./mk.sh "$NOISE" | cut -d ":" -f 2`
       if [ -f $OUTPUT ]; then
           THISTWEET=`echo "$OUTPUT" | sed 's/ /\n/g' | #
                      tail -n 1 | sed 's/\.svg$//'`TWEET.txt
