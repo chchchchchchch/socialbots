@@ -52,9 +52,9 @@
      showguides="false"
      inkscape:guide-bbox="true"
      inkscape:zoom="0.55086192"
-     inkscape:cx="331.14417"
+     inkscape:cx="97.873371"
      inkscape:cy="327.24835"
-     inkscape:current-layer="layer41">
+     inkscape:current-layer="g6314">
     <sodipodi:guide
        position="340.5,-1269.5"
        orientation="-100,0"
@@ -14201,7 +14201,7 @@
      id="g3353"
      inkscape:groupmode="layer" />
   <g
-     style="display:inline"
+     style="display:none"
      charsallowed="95"
      inkscape:label="XX_TXTONLY-030"
      id="g7217"
@@ -14228,7 +14228,7 @@
     <flowRoot
        xml:space="preserve"
        id="flowRoot7245"
-       style="font-size:28px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:justify;line-height:100%;letter-spacing:0px;word-spacing:0px;writing-mode:lr-tb;text-anchor:start;fill:#000000;fill-opacity:1;stroke:none;display:inline;font-family:Webdings;-inkscape-font-specification:Webdings"
+       style="font-size:28px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:start;line-height:100%;letter-spacing:0px;word-spacing:0px;writing-mode:lr-tb;text-anchor:start;fill:#000000;fill-opacity:1;stroke:none;display:inline;font-family:Webdings;-inkscape-font-specification:Webdings"
        transform="translate(-280,59)"><flowRegion
          id="flowRegion7247"><rect
            id="rect7249"
@@ -14236,7 +14236,7 @@
            height="406.73801"
            x="329.74164"
            y="36.381474"
-           style="font-size:28px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:justify;line-height:100%;writing-mode:lr-tb;text-anchor:start;font-family:Webdings;-inkscape-font-specification:Webdings" /></flowRegion><flowPara
+           style="font-size:28px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:start;line-height:100%;writing-mode:lr-tb;text-anchor:start;font-family:Webdings;-inkscape-font-specification:Webdings" /></flowRegion><flowPara
          id="flowPara7251">FOOXXX87653</flowPara></flowRoot>  </g>
   <g
      inkscape:label="ARML-030"
@@ -14325,7 +14325,7 @@
        sodipodi:nodetypes="ccccc" />
   </g>
   <g
-     style="display:none"
+     style="display:inline"
      charsallowed="95"
      inkscape:label="XX_TXTONLY-010"
      id="g6314"
@@ -14340,7 +14340,7 @@
     <flowRoot
        xml:space="preserve"
        id="flowRoot6319"
-       style="font-size:28px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:justify;line-height:100%;letter-spacing:0px;word-spacing:0px;writing-mode:lr-tb;text-anchor:start;fill:#000000;fill-opacity:1;stroke:none;display:inline;font-family:Webdings;-inkscape-font-specification:Webdings"
+       style="font-size:28px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:start;line-height:100%;letter-spacing:0px;word-spacing:0px;writing-mode:lr-tb;text-anchor:start;fill:#000000;fill-opacity:1;stroke:none;display:inline;font-family:Webdings;-inkscape-font-specification:Webdings"
        transform="translate(-280,59)"><flowRegion
          id="flowRegion6321"><rect
            id="rect6323"
@@ -14348,7 +14348,7 @@
            height="406.73801"
            x="329.74164"
            y="36.381474"
-           style="font-size:28px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:justify;line-height:100%;writing-mode:lr-tb;text-anchor:start;font-family:Webdings;-inkscape-font-specification:Webdings" /></flowRegion><flowPara
+           style="font-size:28px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:start;line-height:100%;writing-mode:lr-tb;text-anchor:start;font-family:Webdings;-inkscape-font-specification:Webdings" /></flowRegion><flowPara
          id="flowPara6325">FOOXXX87653</flowPara></flowRoot>  </g>
   <g
      inkscape:groupmode="layer"
@@ -20035,12 +20035,12 @@
        inkscape:connector-curvature="0" />
   </g>
   <g
-     sodipodi:insensitive="true"
      inkscape:groupmode="layer"
      id="g7127"
      inkscape:label="XX_TXTONLY-020"
      charsallowed="95"
-     style="display:none">
+     style="display:none"
+     sodipodi:insensitive="true">
     <path
        inkscape:connector-curvature="0"
        id="path7207"
@@ -20049,11 +20049,11 @@
        sodipodi:nodetypes="ccccc" />
     <flowRoot
        transform="translate(-280,59)"
-       style="font-size:28px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:justify;line-height:100%;letter-spacing:0px;word-spacing:0px;writing-mode:lr-tb;text-anchor:start;fill:#000000;fill-opacity:1;stroke:none;display:inline;font-family:Webdings;-inkscape-font-specification:Webdings"
+       style="font-size:28px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:start;line-height:100%;letter-spacing:0px;word-spacing:0px;writing-mode:lr-tb;text-anchor:start;fill:#000000;fill-opacity:1;stroke:none;display:inline;font-family:Webdings;-inkscape-font-specification:Webdings"
        id="flowRoot7209"
        xml:space="preserve"><flowRegion
          id="flowRegion7211"><rect
-           style="font-size:28px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:justify;line-height:100%;writing-mode:lr-tb;text-anchor:start;font-family:Webdings;-inkscape-font-specification:Webdings"
+           style="font-size:28px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:start;line-height:100%;writing-mode:lr-tb;text-anchor:start;font-family:Webdings;-inkscape-font-specification:Webdings"
            y="36.381474"
            x="329.74164"
            height="406.73801"
@@ -20064,6 +20064,7 @@
      inkscape:groupmode="layer"
      id="layer41"
      inkscape:label="XX_TXTONLY-030"
+     style="display:none"
      sodipodi:insensitive="true">
     <path
        sodipodi:nodetypes="cccsc"
