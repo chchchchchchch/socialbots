@@ -16,7 +16,8 @@ function checkConnection() {
      fi
   done
 
-  if [ "X$EXIT" == "Xyes" ]; then exit 0; fi
-
+  if [ "X$EXIT" == "Xyes" ];then 
+       if [ -f "$LOCKFILE" ];then rm "$LOCKFILE";fi
+       exit 0; fi
  }
 
